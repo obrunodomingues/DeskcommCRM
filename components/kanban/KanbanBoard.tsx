@@ -12,8 +12,7 @@ import { CamposObrigatoriosDialog } from "./CamposObrigatoriosDialog";
 import { useAssignableMembers } from "@/hooks/inbox/useAssignableMembers";
 import { useAtRiskLeads } from "@/hooks/leads/useAtRiskLeads";
 import { useReactivations } from "@/hooks/leads/useReactivations";
-import { midpoint } from "@/lib/kanban/fractional-indexing";
-import { proximoNaEtapaInteira } from "@/lib/kanban/vizinho-na-etapa";
+import { ordenarPorChegada } from "@/lib/kanban/ordem-da-coluna";
 import type { Lead } from "@/lib/types/leads";
 import type { BoardData, Pipeline, Stage } from "@/lib/kanban/types";
 import { StageColumn } from "./StageColumn";
@@ -56,10 +55,9 @@ function groupLeadsByStage(stages: Stage[], leads: Lead[]): Map<string, Lead[]> 
     const bucket = map.get(lead.stage_id);
     if (bucket) bucket.push(lead);
   }
-  // Already ordered by position_in_stage at fetch time, but be defensive.
-  for (const list of map.values()) {
-    list.sort((a, b) => a.position_in_stage - b.position_in_stage);
-  }
+  // Fork Converzon: o mais recente na coluna primeiro (lib/kanban/ordem-da-coluna.ts),
+  // e não a ordem manual de `position_in_stage` do upstream.
+  for (const [stageId, list] of map) map.set(stageId, ordenarPorChegada(list));
   return map;
 }
 
@@ -206,51 +204,33 @@ export function KanbanBoard({
       if (!data || !grouped) return;
       const { source, destination, draggableId } = result;
       if (!destination) return;
-      if (
-        source.droppableId === destination.droppableId &&
-        source.index === destination.index
-      ) {
-        return;
-      }
+      // Fork Converzon: dentro da MESMA coluna não há o que fazer — a ordem é
+      // sempre por chegada (lib/kanban/ordem-da-coluna.ts). Gravar uma posição
+      // aqui seria uma escrita que a tela desfaz no mesmo instante.
+      if (source.droppableId === destination.droppableId) return;
 
       const lead = data.leads.find((l) => l.id === draggableId);
       if (!lead) return;
 
       const destStageId = destination.droppableId;
-      const destList = (grouped.get(destStageId) ?? []).filter(
-        (l) => l.id !== draggableId,
-      );
-
-      const before = destination.index > 0 ? destList[destination.index - 1] : null;
-      // `destList` sai do `grouped`, que a página já FILTROU. O de cima fica
-      // sendo o vizinho visível — foi o que o operador escolheu ao soltar; o de
-      // baixo, porém, tem de ser o próximo card da etapa INTEIRA depois dele.
-      // Tirado da lista filtrada, `midpoint` devolvia `último + 1000` no fim da
-      // coluna visível (a posição nascida do card escondido) e, entre dois
-      // visíveis, a média caía em cima do escondido do meio — os dois cards
-      // ficavam com a MESMA `position_in_stage` e o arrasto seguinte entre eles
-      // era cancelado em silêncio (issue #2545). O funil sem filtro mora no
-      // cache do quadro, que a página preenche inteiro.
+      // Fork Converzon: a POSIÇÃO deixou de decidir a ordem na tela (a coluna sai
+      // por chegada — lib/kanban/ordem-da-coluna.ts), então ela não é mais
+      // "entre o card de cima e o de baixo". Com a coluna ordenada por data, os
+      // vizinhos visíveis podem ter posições fora de ordem ou IGUAIS (lead nascido
+      // pelo banco pega o default 1000), e o `midpoint` do upstream devolvia NaN e
+      // cancelava o arrasto em silêncio. Final da etapa inteira (MAX + 1000, a
+      // mesma régua do handler de criação) é sempre válido e não colide. O funil
+      // sem filtro mora no cache do quadro, que a página preenche inteiro.
       const etapaInteira =
         qc
           .getQueryData<BoardData>(chaveDoQuadro(pipelineId))
-          ?.leads.filter((l) => l.stage_id === destStageId) ?? null;
-      const after = proximoNaEtapaInteira(
-        before ?? null,
-        destList[destination.index] ?? null,
-        etapaInteira,
-        draggableId,
+          ?.leads.filter((l) => l.stage_id === destStageId && l.id !== draggableId) ??
+        (grouped.get(destStageId) ?? []).filter((l) => l.id !== draggableId);
+      const maiorPosicao = etapaInteira.reduce(
+        (maior, l) => Math.max(maior, Number(l.position_in_stage) || 0),
+        0,
       );
-
-      const newPosition = midpoint(
-        before?.position_in_stage ?? null,
-        after?.position_in_stage ?? null,
-      );
-
-      if (Number.isNaN(newPosition)) {
-        // Collision — Wave 8 will handle global rebalance. For now, abort silently.
-        return;
-      }
+      const newPosition = maiorPosicao + 1000;
 
       moveCard.mutate({
         leadId: lead.id,
