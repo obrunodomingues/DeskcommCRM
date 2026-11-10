@@ -4,8 +4,8 @@
 # scheduler, banco e WAHA não são tocados.
 #
 #   crm-versao.sh status
-#   crm-versao.sh fork ghcr.io/obrunodomingues/deskcommcrm@sha256:<digest>
-#   crm-versao.sh oficial          # a imagem oficial da MESMA versão do worker
+#   crm-versao.sh fork <imagem-do-fork>@sha256:<digest>
+#   crm-versao.sh oficial          # a imagem oficial do app, mesma origem e versão do worker
 #
 # Segurança:
 #   - baixa a imagem ANTES de mexer em qualquer coisa (falhou o download, nada muda);
@@ -25,7 +25,10 @@ DOMINIO="$(grep -E '^NEXT_PUBLIC_APP_URL=' .env | head -1 | cut -d= -f2- | tr -d
 [ -n "$DOMINIO" ] || { echo "NEXT_PUBLIC_APP_URL ausente no .env" >&2; exit 1; }
 
 imagem_no_env() { grep -E '^APP_IMAGE=' .env | head -1 | cut -d= -f2- | tr -d '"'; }
-versao_oficial() { grep -E '^WORKER_IMAGE=' .env | head -1 | cut -d= -f2- | tr -d '"' | sed 's/.*://'; }
+# A oficial do app sai do WORKER_IMAGE (o worker nunca é trocado pelo fork): mesmo
+# registro, mesma versão, só o nome da imagem muda. Não se escreve o namespace à
+# mão aqui — a catraca tests/unit/namespace-das-imagens.test.ts proíbe.
+imagem_oficial() { grep -E '^WORKER_IMAGE=' .env | head -1 | cut -d= -f2- | tr -d '"' | sed 's#/deskcomm-worker:#/deskcommcrm:#'; }
 codigo() { curl -s -o /dev/null -w '%{http_code}' -m 20 "$1" || echo 000; }
 
 compose_app() {
@@ -89,6 +92,6 @@ trocar() {
 case "${1:-status}" in
   status)  status ;;
   fork)    [ -n "${2:-}" ] || { echo "uso: $0 fork <imagem@sha256:...>" >&2; exit 2; }; trocar "$2" ;;
-  oficial) trocar "ghcr.io/melgarafael/deskcommcrm:$(versao_oficial)" ;;
+  oficial) trocar "$(imagem_oficial)" ;;
   *)       echo "uso: $0 status | fork <imagem> | oficial" >&2; exit 2 ;;
 esac

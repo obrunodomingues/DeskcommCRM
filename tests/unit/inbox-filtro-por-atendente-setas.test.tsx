@@ -48,7 +48,8 @@ afterEach(() => {
 const COM_ATENDENTE: InboxFiltersValue = { tab: "unassigned", search: "", onlyUnread: false, assigned_to: ATENDENTE };
 
 describe("filtro por atendente — as setas de aba", () => {
-  it("'Próxima aba' para Minhas limpa o atendente escolhido", () => {
+  // Fork Converzon: a aba Minhas saiu da faixa — as setas não chegam mais nela.
+  it.skip("'Próxima aba' para Minhas limpa o atendente escolhido", () => {
     const onChange = vi.fn();
     render(<InboxFilters value={COM_ATENDENTE} onChange={onChange} />);
     fireEvent.click(screen.getByRole("button", { name: "Próxima aba" }));
@@ -59,6 +60,7 @@ describe("filtro por atendente — as setas de aba", () => {
     const onChange = vi.fn();
     render(<InboxFilters value={{ ...COM_ATENDENTE, tab: "all" }} onChange={onChange} />);
     fireEvent.click(screen.getByRole("button", { name: "Próxima aba" }));
-    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ tab: "closed", assigned_to: ATENDENTE }));
+    // Fork Converzon: depois de Todas vem Novas mensagens.
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ tab: "novas", assigned_to: ATENDENTE }));
   });
 });

@@ -55,7 +55,7 @@ function groupLeadsByStage(stages: Stage[], leads: Lead[]): Map<string, Lead[]> 
     const bucket = map.get(lead.stage_id);
     if (bucket) bucket.push(lead);
   }
-  // Fork Converzon: o mais recente na coluna primeiro (lib/kanban/ordem-da-coluna.ts),
+  // Fork Converzon: o mais recente na coluna primeiro (ordem-da-coluna.ts),
   // e não a ordem manual de `position_in_stage` do upstream.
   for (const [stageId, list] of map) map.set(stageId, ordenarPorChegada(list));
   return map;
@@ -205,7 +205,7 @@ export function KanbanBoard({
       const { source, destination, draggableId } = result;
       if (!destination) return;
       // Fork Converzon: dentro da MESMA coluna não há o que fazer — a ordem é
-      // sempre por chegada (lib/kanban/ordem-da-coluna.ts). Gravar uma posição
+      // sempre por chegada (ordem-da-coluna.ts). Gravar uma posição
       // aqui seria uma escrita que a tela desfaz no mesmo instante.
       if (source.droppableId === destination.droppableId) return;
 
@@ -214,7 +214,7 @@ export function KanbanBoard({
 
       const destStageId = destination.droppableId;
       // Fork Converzon: a POSIÇÃO deixou de decidir a ordem na tela (a coluna sai
-      // por chegada — lib/kanban/ordem-da-coluna.ts), então ela não é mais
+      // por chegada — ordem-da-coluna.ts), então ela não é mais
       // "entre o card de cima e o de baixo". Com a coluna ordenada por data, os
       // vizinhos visíveis podem ter posições fora de ordem ou IGUAIS (lead nascido
       // pelo banco pega o default 1000), e o `midpoint` do upstream devolvia NaN e

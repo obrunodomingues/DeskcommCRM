@@ -86,7 +86,7 @@ export function useMoveCard(pipelineId: string, opcoes: OpcoesDeMove = {}) {
                   stage_id: args.stageId,
                   position_in_stage: args.positionInStage,
                   // Fork Converzon: a coluna ordena por chegada
-                  // (lib/kanban/ordem-da-coluna.ts). Sem carimbar aqui, o card
+                  // (ordem-da-coluna.ts). Sem carimbar aqui, o card
                   // movido apareceria no meio da coluna até o servidor responder
                   // com a `stage_changed_at` que o trigger gravou.
                   ...(l.stage_id !== args.stageId ? { stage_changed_at: new Date().toISOString() } : {}),
