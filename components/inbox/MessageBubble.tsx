@@ -57,9 +57,43 @@ interface Props {
   onRestaurar?: () => Promise<void>;
 }
 
-function AckIndicator({ status, t }: { status: string; t: (texto: string) => string }) {
+/**
+ * Fork Converzon — A COR DO BALÃO DIZ QUEM RESPONDEU.
+ *
+ * O rótulo em cima do balão ("Celular", "IA") continua; a cor é para bater o
+ * olho na conversa. CRM (`user`/`crm`) e o resto seguem na cor da marca, como no
+ * upstream. Celular é azul e IA é roxo — as mesmas famílias que a lista do inbox
+ * já usa para "pessoa" e "automático" (`ConversationListItem`).
+ *
+ * Troca as VARIÁVEIS do acento só dentro do balão, em vez de trocar a classe de
+ * fundo: tudo que o balão desenha com `primary`/`primary-foreground` (botão de
+ * opções, citação, anexo) acompanha sem precisar de um ramo por elemento.
+ */
+export function corDeQuemEnviou(sentVia: string | null | undefined): string | undefined {
+  if (sentVia === "external_device") return "[--color-accent:#2563eb] [--color-accent-fg:#ffffff]";
+  if (sentVia === "ai") return "[--color-accent:#7c3aed] [--color-accent-fg:#ffffff]";
+  return undefined;
+}
+
+function AckIndicator({
+  status,
+  t,
+  sobreCor = false,
+}: {
+  status: string;
+  t: (texto: string) => string;
+  /** Balão azul/roxo (fork Converzon): o azul do "lida" sumiria no fundo. */
+  sobreCor?: boolean;
+}) {
   if (status === "read") {
-    return <Checks size={12} weight="bold" className="text-blue-400" aria-label={t("Lida")} />;
+    return (
+      <Checks
+        size={12}
+        weight="bold"
+        className={sobreCor ? "text-sky-200" : "text-blue-400"}
+        aria-label={t("Lida")}
+      />
+    );
   }
   if (status === "delivered") {
     return <Checks size={12} weight="bold" className="text-current/70" aria-label={t("Entregue")} />;
@@ -246,7 +280,7 @@ export function MessageBubble({
                 "rounded-2xl px-3 py-2 shadow-sm",
                 temMenu && "pr-8",
                 isOutbound
-                  ? "rounded-br-sm bg-primary text-primary-foreground"
+                  ? cn("rounded-br-sm bg-primary text-primary-foreground", corDeQuemEnviou(message.sent_via))
                   : "rounded-bl-sm bg-muted text-foreground",
               ),
           isFailed && "border border-destructive",
@@ -450,7 +484,13 @@ export function MessageBubble({
           {showCitationButton && (
             <CitationButton citations={citations} messageId={message.id} />
           )}
-          {isOutbound && !isFailed && <AckIndicator status={message.status} t={t} />}
+          {isOutbound && !isFailed && (
+            <AckIndicator
+              status={message.status}
+              t={t}
+              sobreCor={Boolean(corDeQuemEnviou(message.sent_via))}
+            />
+          )}
           {isFailed && (
             // Provider local: o painel do inbox não tem TooltipProvider ancestral e
             // este Tooltip só monta em mensagem failed — sem o provider, abrir uma
