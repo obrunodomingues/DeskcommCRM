@@ -89,6 +89,11 @@ export interface ConversationsFilters {
   status?: StatusDeConversa | readonly StatusDeConversa[];
   /** Esconde fechadas/arquivadas — ver `exclude_finished` no schema da rota. */
   exclude_finished?: boolean;
+  /**
+   * Fork Converzon: só as conversas com a última fala do cliente sem resposta
+   * (abas "Novas mensagens" e "Aguardando resposta").
+   */
+  sem_resposta?: boolean;
   assigned_to?: "me" | "unassigned" | string;
   /**
    * QUEM MANDA na conversa — o filtro que as abas Fila e Automático passaram a
@@ -179,6 +184,7 @@ export function useConversationsRealtime(
         qs.set("comando", filters.comando.join(","));
       }
       if (filters.exclude_finished) qs.set("exclude_finished", "true");
+      if (filters.sem_resposta) qs.set("sem_resposta", "true");
       if (filters.assigned_to) qs.set("assigned_to", filters.assigned_to);
       if (filters.search) qs.set("search", filters.search);
       if (filters.unread) qs.set("unread", "true");

@@ -1517,6 +1517,9 @@ export const DICIONARIO: Traducoes = {
   Fila: { es: "Cola" },
   Minhas: { es: "Mías" },
   Todas: { es: "Todas" },
+  // Fork Converzon — aba do inbox (lib/inbox/abas-converzon.ts). "Aguardando
+  // resposta", a outra aba nova, já existia mais abaixo.
+  "Novas mensagens": { es: "Mensajes nuevos" },
   Fechadas: { es: "Cerradas" },
   // O estado `archived` é terminal como `closed`, mas conta outra coisa: é a
   // pasta do histórico. Sem entrada própria, a aba "Arquivadas" apareceria
@@ -7860,6 +7863,9 @@ export const DICIONARIO: Traducoes = {
   Automático: { es: "Automático" },
   Alguém: { es: "Alguien" },
   "Nota interna · só o time vê": { es: "Nota interna · solo la ve el equipo" },
+  // Fork Converzon — notas fixadas no painel do contato (NotasInternasDoPainel).
+  "Notas internas": { es: "Notas internas" },
+  "Nenhuma nota interna nesta conversa.": { es: "Ninguna nota interna en esta conversación." },
   "Excluir nota": { es: "Eliminar nota" },
 
   // ─── Inbox: transferir conversa / atalhos de teclado ───
