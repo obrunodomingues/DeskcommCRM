@@ -1520,6 +1520,52 @@ export const DICIONARIO: Traducoes = {
   // Fork Converzon — aba do inbox (lib/inbox/abas-converzon.ts). "Aguardando
   // resposta", a outra aba nova, já existia mais abaixo.
   "Novas mensagens": { es: "Mensajes nuevos" },
+  // Fork Converzon — menu ("WhatsApp" no lugar de "Inbox") e a tela "Métricas do
+  // site" (app/app/metricas-do-site).
+  WhatsApp: { es: "WhatsApp" },
+  "Métricas do site": { es: "Métricas del sitio" },
+  "Visitas, origens, páginas e contatos do site pelo Google Analytics, com gráficos.": {
+    es: "Visitas, orígenes, páginas y contactos del sitio por Google Analytics, con gráficos.",
+  },
+  "As visitas do site pelo Google Analytics, comparadas com o período anterior.": {
+    es: "Las visitas del sitio por Google Analytics, comparadas con el período anterior.",
+  },
+  "Só gerentes e administradores veem as métricas do site.": {
+    es: "Solo gerentes y administradores ven las métricas del sitio.",
+  },
+  "pessoa no site agora": { es: "persona en el sitio ahora" },
+  "pessoas no site agora": { es: "personas en el sitio ahora" },
+  "Não consegui carregar as métricas.": { es: "No pude cargar las métricas." },
+  "Tente de novo em instantes.": { es: "Inténtalo de nuevo en unos instantes." },
+  "O Google Analytics ainda não está conectado.": { es: "Google Analytics todavía no está conectado." },
+  "O Google Analytics não respondeu como esperado.": { es: "Google Analytics no respondió como se esperaba." },
+  "Conta de serviço": { es: "Cuenta de servicio" },
+  Visitantes: { es: "Visitantes" },
+  Visitas: { es: "Visitas" },
+  "Páginas vistas": { es: "Páginas vistas" },
+  "Formulários enviados": { es: "Formularios enviados" },
+  "Cliques no WhatsApp": { es: "Clics en WhatsApp" },
+  "Tempo médio no site": { es: "Tiempo medio en el sitio" },
+  "Visitas por dia": { es: "Visitas por día" },
+  "Visitas no período anterior": { es: "Visitas en el período anterior" },
+  "De onde vêm as visitas": { es: "De dónde vienen las visitas" },
+  visitas: { es: "visitas" },
+  "Celular ou computador": { es: "Celular o computadora" },
+  "Nenhum dado no período.": { es: "Ningún dato en el período." },
+  "Páginas mais vistas": { es: "Páginas más vistas" },
+  visualizações: { es: "visualizaciones" },
+  Cidades: { es: "Ciudades" },
+  visitantes: { es: "visitantes" },
+  "Do site ao CRM": { es: "Del sitio al CRM" },
+  "No mesmo período, do clique até o lead no funil.": { es: "En el mismo período, del clic al lead en el embudo." },
+  "Visitas no site": { es: "Visitas en el sitio" },
+  "Contatos pelo site": { es: "Contactos por el sitio" },
+  "formulário + WhatsApp": { es: "formulario + WhatsApp" },
+  "das visitas": { es: "de las visitas" },
+  "Leads novos no CRM": { es: "Leads nuevos en el CRM" },
+  "pelo formulário do site": { es: "por el formulario del sitio" },
+  "sem base para comparar": { es: "sin base para comparar" },
+  "vs. período anterior": { es: "vs. período anterior" },
   Fechadas: { es: "Cerradas" },
   // O estado `archived` é terminal como `closed`, mas conta outra coisa: é a
   // pasta do histórico. Sem entrada própria, a aba "Arquivadas" apareceria

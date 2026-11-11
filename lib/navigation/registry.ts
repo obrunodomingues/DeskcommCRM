@@ -17,6 +17,7 @@ import {
   FlowArrow,
   Funnel,
   Gauge,
+  Globe,
   Inbox,
   Kanban,
   Key,
@@ -41,6 +42,7 @@ import {
   Users,
   UsersThree,
   WebhooksLogo,
+  WhatsappLogo,
 } from "@/lib/ui/icons";
 
 import {
@@ -73,6 +75,7 @@ const ICONS = {
   FlowArrow,
   Funnel,
   Gauge,
+  Globe,
   Inbox,
   Kanban,
   Key,
@@ -97,6 +100,8 @@ const ICONS = {
   Users,
   UsersThree,
   WebhooksLogo,
+  // Fork Converzon: "WhatsApp" (antes "Inbox") e "Métricas do site".
+  WhatsappLogo,
 };
 export interface NavDestination extends Omit<NavMetadata, "icon"> {
   icon: PhosphorIcon;

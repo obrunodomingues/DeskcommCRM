@@ -13,6 +13,19 @@ seguem nas imagens oficiais da mesma versão.
 | Cor do balão por quem respondeu: CRM na cor da marca, celular azul, IA roxo | `components/inbox/MessageBubble.tsx` |
 | Notas internas fixadas no painel do contato | `components/inbox/NotasInternasDoPainel.tsx`, `components/inbox/CRMSidePanel.tsx` |
 | Funil: card mais recente no topo da coluna (chegada na coluna) | `lib/kanban/ordem-da-coluna.ts`, `components/kanban/KanbanBoard.tsx`, `hooks/kanban/useMoveCard.ts` |
+| Menu: "Inbox" vira **WhatsApp**, com o ícone do WhatsApp | `lib/navigation/catalogo.ts`, `lib/navigation/registry.ts`, `app/app/inbox/page.tsx` |
+| **Métricas do site** (Análise): Google Analytics 4 com gráficos, comparação com o período anterior, "agora no site" e "Do site ao CRM" | `lib/converzon/{ga4,metricas-do-site}.ts`, `app/api/v1/converzon/metricas-do-site/route.ts`, `app/app/metricas-do-site/*` |
+
+## Variáveis de ambiente do fork
+
+No `.env` da VPS (o app lê o `.env` inteiro), documentadas em `.env.example`:
+
+- `CONVERZON_GA4_PROPERTY_ID` — ID numérico da propriedade do GA4.
+- `CONVERZON_GA4_CREDENTIALS_B64` — JSON da conta de serviço (papel "Leitor"
+  na propriedade) em base64 numa linha. É SEGREDO: nunca em commit nem no chat.
+
+Vazias, a tela "Métricas do site" explica que falta configurar. O app só lê o
+`.env` ao ser recriado (`crm-versao.sh` faz isso).
 
 As abas antigas (Automático, Fila, Minhas) continuam existindo por baixo —
 `tabToFilter`, contagens e links antigos —, só não aparecem. Isso mantém o diff

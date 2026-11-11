@@ -168,9 +168,11 @@ export const NAV_CATALOG = [
   // ---- Atendimento — onde o operador passa o dia ----
   {
     href: "/app/inbox",
-    label: "Inbox",
+    // Fork Converzon: o consultório só atende por WhatsApp — o nome e o ícone
+    // dizem isso, em vez do "Inbox" genérico.
+    label: "WhatsApp",
     description: "As conversas de WhatsApp, com você e a IA atendendo lado a lado.",
-    icon: "Inbox",
+    icon: "WhatsappLogo",
     group: "atendimento",
     sidebar: true,
     // Quantas conversas a IA passou para a equipe e esperam uma pessoa (aba Fila).
@@ -827,6 +829,19 @@ export const NAV_CATALOG = [
     // `manager`, e não o `viewer` de Desempenho: aqui não há recorte por
     // pessoa — orçamento e criativo são da empresa inteira. Mesmo grau dos
     // outros dois vizinhos do grupo.
+    minRole: "manager",
+    sidebar: true,
+  },
+  {
+    // Fork Converzon: o Google Analytics do site, com gráficos, perto de Meta
+    // Ads — o que trouxe a pessoa ao site e o que ela fez lá. Mesmo `manager`
+    // dos vizinhos: os números são da empresa inteira.
+    href: "/app/metricas-do-site",
+    label: "Métricas do site",
+    description: "Visitas, origens, páginas e contatos do site pelo Google Analytics, com gráficos.",
+    icon: "Globe",
+    group: "analise",
+    section: "Os números do período",
     minRole: "manager",
     sidebar: true,
   },
