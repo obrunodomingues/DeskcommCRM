@@ -92,8 +92,8 @@ export function MetricasDoSiteClient() {
               onClick={() => setDias(p)}
               aria-pressed={dias === p}
               className={cn(
-                "rounded px-3 py-1.5 text-xs font-medium transition-colors",
-                dias === p ? "bg-accent text-accent-fg" : "text-text-muted hover:text-text",
+                "rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+                dias === p ? "bg-accent text-accent-foreground" : "text-text-muted hover:text-text",
               )}
             >
               {p} {t("dias")}

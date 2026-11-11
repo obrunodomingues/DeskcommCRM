@@ -858,7 +858,8 @@ export const NAV_CATALOG = [
     icon: "ClockCounterClockwise",
     group: "analise",
     section: "Os números do período",
-    sidebar: true,
+    // Fork Converzon: sai do menu lateral (continua em "Ver tudo em Análise")
+    // para "Métricas do site" caber no teto de 15 itens da dobra a 1280x900.
   },
   {
     // Observabilidade, não configuração: por isso não fica junto dos agentes.

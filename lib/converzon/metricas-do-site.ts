@@ -87,7 +87,7 @@ export function nomeDaOrigem(fonte: string, meio: string): string {
   // Anúncio da Meta marcado com utm_source=meta (Facebook + Instagram juntos).
   if (f === "meta" || f === "meta_ads" || f === "metaads") return pago ? "Meta (anúncio)" : "Meta";
   if (f.includes("instagram")) return pago ? "Instagram (anúncio)" : "Instagram";
-  if (f.includes("facebook") || f === "fb" || f.includes("fb.com")) return pago ? "Facebook (anúncio)" : "Facebook";
+  if (f.includes("facebook") || f === "fb") return pago ? "Facebook (anúncio)" : "Facebook";
   if (f.includes("whatsapp") || f === "wa.me") return "WhatsApp";
   if (f.includes("youtube")) return "YouTube";
   if (f.includes("bing")) return "Bing";

@@ -30,6 +30,8 @@ const ESCOPOS_DECLARADOS: Record<string, string> = {
   "meetings.space.created": "Google Meet:",
   adwords: "Google Ads:",
   datamanager: "Google Ads:",
+  // Fork Converzon — tela Métricas do site (lib/converzon/ga4.ts).
+  "analytics.readonly": "Google Analytics:",
 };
 
 function escoposPedidosPeloCodigo(): Map<string, string[]> {

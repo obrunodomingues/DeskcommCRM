@@ -225,6 +225,12 @@ export default async function PrivacyPage() {
               "enviar ao Google Ads as vendas que um anúncio trouxe, para que ele aprenda com elas, criar e listar ações de conversão e ler as métricas das campanhas da própria conta de anúncios.",
             )}
           </li>
+          <li>
+            <strong>{t("Google Analytics:")}</strong>{" "}
+            {t(
+              "ler, só para consulta, os números agregados de visitas do site da própria organização (visitas, origens, páginas, cidades e aparelhos) e mostrá-los na tela de métricas do site. A leitura usa uma conta de serviço com acesso de leitor, não identifica visitantes e nada é gravado no Google.",
+            )}
+          </li>
         </ul>
         <p>
           {t(

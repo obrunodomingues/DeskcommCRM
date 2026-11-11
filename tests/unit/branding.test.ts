@@ -850,6 +850,11 @@ const HOSTS_DECLARADOS: Record<string, EntradaDeHost> = {
     categoria: "FORNECEDOR",
     motivo: "endpoint oficial da Google Data Manager API: recebe conversões e consulta o processamento na conta autorizada pela própria organização. O destino pertence ao fornecedor e não à instalação do CRM.",
   },
+  "analyticsdata.googleapis.com": {
+    categoria: "FORNECEDOR",
+    motivo:
+      "fork Converzon: endpoint oficial da Google Analytics Data API (`lib/converzon/ga4.ts`), lido pela tela Métricas do site com a conta de serviço da própria instalação (papel Leitor). É o DESTINO do request: trocar pelo domínio do revendedor faria a leitura não chegar a lugar nenhum.",
+  },
   "meet.googleapis.com": {
     categoria: "FORNECEDOR",
     motivo:
