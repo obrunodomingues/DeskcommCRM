@@ -49,6 +49,9 @@ interface Props {
    * seu. Por isso a ausência do id NÃO cai em "Você": quem não sabe quem está
    * lendo (a leitura do super-admin em `AdminThread`, por exemplo) rotula
    * "Atendente", que é verdadeiro para todo mundo.
+   *
+   * Fork Converzon: o balão diz "CRM" para quem quer que tenha digitado, então
+   * o id não é mais lido aqui. A prop fica para não divergir dos chamadores.
    */
   viewerUserId?: string | null;
   onEditar?: (text: string) => Promise<void>;
@@ -111,7 +114,6 @@ export function MessageBubble({
   onResponder,
   citada,
   reacoes,
-  viewerUserId,
   onEditar,
   onApagar,
   onOcultar,
@@ -224,15 +226,11 @@ export function MessageBubble({
     // #866 visto de dentro da tela.
     if (message.sent_via === "system") return "Sistema";
     if (message.sent_via === "external_device") return "Celular";
-    if (message.sent_via === "user" || message.sent_via === "crm") {
-      // "Você" exige as DUAS pontas: saber quem lê e saber quem enviou. Falta
-      // qualquer uma, o rótulo cai para "Atendente" — que continua dizendo o
-      // que `sent_via` de fato garante (um humano, pelo CRM) sem afirmar uma
-      // identidade que o dado não sustenta.
-      return viewerUserId != null && message.sent_by_user_id === viewerUserId
-        ? "Você"
-        : "Atendente";
-    }
+    // Fork Converzon: digitada no CRM diz "CRM", seja quem for que digitou. Mais
+    // de uma pessoa da equipe atende pela mesma conversa, e o balão verde faz par
+    // com "Celular" (azul) e "IA" (roxo) — o rótulo diz POR ONDE saiu, como os
+    // outros dois. O upstream separava "Você"/"Atendente" por `viewerUserId`.
+    if (message.sent_via === "user" || message.sent_via === "crm") return "CRM";
     return null;
   })();
   // QUEM MANDOU, num grupo. Só faz sentido em mensagem RECEBIDA: uma mensagem
@@ -364,7 +362,7 @@ export function MessageBubble({
             )}
           >
             <div className="font-medium opacity-80">
-              {citada.direction === "outbound" ? t("Você") : t("Cliente")}
+              {citada.direction === "outbound" ? t("CRM") : t("Cliente")}
             </div>
             {/*
               A CITADA PODE TER SIDO APAGADA — e aí o texto dela não volta aqui.

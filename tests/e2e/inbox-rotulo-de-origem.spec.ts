@@ -257,8 +257,9 @@ test.describe("Inbox — o balão diz de onde saiu a mensagem", () => {
     const esperado: Array<[string, string]> = [
       ["RESPOSTA PELO CELULAR", "Celular"],
       ["RESPOSTA DO AGENTE", "IA"],
-      ["RESPOSTA DIGITADA POR MIM", "Você"],
-      ["RESPOSTA DIGITADA PELO COLEGA", "Atendente"],
+      // Fork Converzon: digitada no CRM é "CRM" para qualquer pessoa da equipe.
+      ["RESPOSTA DIGITADA POR MIM", "CRM"],
+      ["RESPOSTA DIGITADA PELO COLEGA", "CRM"],
     ];
 
     for (const [corpo, rotulo] of esperado) {
@@ -272,24 +273,20 @@ test.describe("Inbox — o balão diz de onde saiu a mensagem", () => {
       ).toContainText(rotulo);
     }
 
-    // "VOCÊ" NÃO PODE APARECER NA MENSAGEM DE OUTRA PESSOA.
-    //
-    // A asserção positiva acima não fecha sozinha: "Atendente" e "Você" são
-    // textos distintos, mas um componente que desenhasse os DOIS rótulos na
-    // mesma bolha passaria no `toContainText("Atendente")`. Esta é a asserção
-    // que o dono da conta sente — ler o atendimento do colega como se fosse
-    // seu é a mentira, e ela não some por acrescentar um rótulo certo ao lado.
-    await expect(
-      balaoCom("RESPOSTA DIGITADA PELO COLEGA"),
-      "o balão do colega não pode dizer 'Você' — sent_via='user' não diz QUAL humano digitou",
-    ).not.toContainText("Você");
+    // Os rótulos do upstream ("Você"/"Atendente") não voltam em nenhum dos dois:
+    // o fork diz "CRM" e não afirma QUAL humano digitou.
+    for (const corpo of ["RESPOSTA DIGITADA POR MIM", "RESPOSTA DIGITADA PELO COLEGA"]) {
+      for (const antigo of ["Você", "Atendente"]) {
+        await expect(balaoCom(corpo), `o balão de "${corpo}" não pode dizer "${antigo}"`).not.toContainText(antigo);
+      }
+    }
 
     // O CONTROLE NEGATIVO, e ele é o que separa "rotula certo" de "rotula
     // tudo": a mensagem RECEBIDA não leva rótulo de origem nenhum. Sem ele,
     // um componente que carimbasse "Celular" em toda bolha passaria nos
     // casos acima.
     const bolhaDoCliente = balaoCom("PERGUNTA DO CLIENTE");
-    for (const rotulo of ["Celular", "IA", "Você", "Atendente"]) {
+    for (const rotulo of ["Celular", "IA", "CRM"]) {
       await expect(
         bolhaDoCliente,
         `a mensagem do cliente não pode levar o rótulo "${rotulo}"`,

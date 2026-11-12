@@ -10,7 +10,7 @@ seguem nas imagens oficiais da mesma versão.
 | Mudança | Arquivos |
 |---|---|
 | Inbox com 3 abas: **Todas** (primeira e padrão), **Novas mensagens**, **Aguardando resposta**; Fechadas/Arquivadas numa linha discreta | `lib/inbox/abas-converzon.ts`, `components/inbox/InboxFilters.tsx`, `components/inbox/InboxLayout.tsx`, `app/api/v1/conversations/{_handler,route,counts/route}.ts`, `hooks/inbox/*` |
-| Cor do balão por quem respondeu: CRM na cor da marca, celular azul, IA roxo | `components/inbox/MessageBubble.tsx` |
+| Cor do balão por quem respondeu: CRM na cor da marca, celular azul, IA roxo. Digitada no CRM diz **CRM** (não "Você"/"Atendente"), também na citação | `components/inbox/MessageBubble.tsx`, `components/inbox/Composer.tsx` |
 | Notas internas fixadas no painel do contato | `components/inbox/NotasInternasDoPainel.tsx`, `components/inbox/CRMSidePanel.tsx` |
 | Funil: card mais recente no topo da coluna (chegada na coluna) | `lib/kanban/ordem-da-coluna.ts`, `components/kanban/KanbanBoard.tsx`, `hooks/kanban/useMoveCard.ts` |
 | Menu: "Inbox" vira **WhatsApp**, com o ícone do WhatsApp | `lib/navigation/catalogo.ts`, `lib/navigation/registry.ts`, `app/app/inbox/page.tsx` |
