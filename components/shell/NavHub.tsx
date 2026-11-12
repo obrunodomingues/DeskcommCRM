@@ -111,12 +111,12 @@ export function NavHub({
               const Icon = item.icon;
               return (
                 <Link key={item.href} href={item.href} className="block">
-                  <Card className="flex h-full gap-3 p-4 transition-colors hover:border-border-strong">
+                  <Card className="cz-ergue flex h-full gap-3 p-4 transition-colors hover:border-border-strong">
                     <Icon
                       size={20}
                       weight="regular"
                       aria-hidden
-                      className="mt-0.5 shrink-0 text-muted-foreground"
+                      className="cz-icone mt-0.5 shrink-0 text-muted-foreground"
                     />
                     <div>
                       <h3 className="text-sm font-semibold">{traduzir(item.label, locale)}</h3>

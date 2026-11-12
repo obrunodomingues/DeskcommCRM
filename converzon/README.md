@@ -15,6 +15,7 @@ seguem nas imagens oficiais da mesma versão.
 | Funil: card mais recente no topo da coluna (chegada na coluna) | `lib/kanban/ordem-da-coluna.ts`, `components/kanban/KanbanBoard.tsx`, `hooks/kanban/useMoveCard.ts` |
 | Menu: "Inbox" vira **WhatsApp**, com o ícone do WhatsApp | `lib/navigation/catalogo.ts`, `lib/navigation/registry.ts`, `app/app/inbox/page.tsx` |
 | **Métricas do site** (Análise): Google Analytics 4 com gráficos, comparação com o período anterior, "agora no site" e "Do site ao CRM" | `lib/converzon/{ga4,metricas-do-site}.ts`, `app/api/v1/converzon/metricas-do-site/route.ts`, `app/app/metricas-do-site/*` |
+| **Visual do consultório**: Inter, fundo cinza-claro com cartões brancos, verde do cliente, letras maiores, botões em pílula, cartões que sobem com o mouse e **barra lateral no tema oposto** ao da página (`[data-lado-invertido]`) | `app/converzon.css`, `app/layout.tsx`, `app/globals.css` (só o `@custom-variant dark`), `components/shell/{Sidebar,MobileSidebar,NavHub}.tsx`, `components/ui/button.tsx`, `app/fonts/inter-100-900-latin.woff2` |
 
 ## Variáveis de ambiente do fork
 

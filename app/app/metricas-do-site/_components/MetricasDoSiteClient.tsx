@@ -142,12 +142,12 @@ export function MetricasDoSiteClient() {
       {ga4 && (
         <>
           <section className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
-            <Cartao icone={<Users size={16} />} titulo={t("Visitantes")} valor={numero(ga4.totais.atual.visitantes)} delta={comparar(ga4, ga4.totais.atual.visitantes, ga4.totais.anterior.visitantes)} />
-            <Cartao icone={<Globe size={16} />} titulo={t("Visitas")} valor={numero(ga4.totais.atual.visitas)} delta={comparar(ga4, ga4.totais.atual.visitas, ga4.totais.anterior.visitas)} />
-            <Cartao icone={<Eye size={16} />} titulo={t("Páginas vistas")} valor={numero(ga4.totais.atual.paginas)} delta={comparar(ga4, ga4.totais.atual.paginas, ga4.totais.anterior.paginas)} />
-            <Cartao icone={<FileText size={16} />} titulo={t("Formulários enviados")} valor={numero(ga4.eventos.atual.formularios)} delta={comparar(ga4, ga4.eventos.atual.formularios, ga4.eventos.anterior.formularios)} />
-            <Cartao icone={<WhatsappLogo size={16} />} titulo={t("Cliques no WhatsApp")} valor={numero(ga4.eventos.atual.cliquesWhatsapp)} delta={comparar(ga4, ga4.eventos.atual.cliquesWhatsapp, ga4.eventos.anterior.cliquesWhatsapp)} />
-            <Cartao icone={<Clock size={16} />} titulo={t("Tempo médio no site")} valor={duracao(ga4.totais.atual.tempoMedioSeg)} delta={comparar(ga4, ga4.totais.atual.tempoMedioSeg, ga4.totais.anterior.tempoMedioSeg)} />
+            <Cartao icone={<Users size={20} />} titulo={t("Visitantes")} valor={numero(ga4.totais.atual.visitantes)} delta={comparar(ga4, ga4.totais.atual.visitantes, ga4.totais.anterior.visitantes)} />
+            <Cartao icone={<Globe size={20} />} titulo={t("Visitas")} valor={numero(ga4.totais.atual.visitas)} delta={comparar(ga4, ga4.totais.atual.visitas, ga4.totais.anterior.visitas)} />
+            <Cartao icone={<Eye size={20} />} titulo={t("Páginas vistas")} valor={numero(ga4.totais.atual.paginas)} delta={comparar(ga4, ga4.totais.atual.paginas, ga4.totais.anterior.paginas)} />
+            <Cartao icone={<FileText size={20} />} titulo={t("Formulários enviados")} valor={numero(ga4.eventos.atual.formularios)} delta={comparar(ga4, ga4.eventos.atual.formularios, ga4.eventos.anterior.formularios)} />
+            <Cartao icone={<WhatsappLogo size={20} />} titulo={t("Cliques no WhatsApp")} valor={numero(ga4.eventos.atual.cliquesWhatsapp)} delta={comparar(ga4, ga4.eventos.atual.cliquesWhatsapp, ga4.eventos.anterior.cliquesWhatsapp)} />
+            <Cartao icone={<Clock size={20} />} titulo={t("Tempo médio no site")} valor={duracao(ga4.totais.atual.tempoMedioSeg)} delta={comparar(ga4, ga4.totais.atual.tempoMedioSeg, ga4.totais.anterior.tempoMedioSeg)} />
           </section>
 
           <section className="rounded-lg border border-border bg-card p-4">
@@ -243,11 +243,9 @@ export function MetricasDoSiteClient() {
 function Cartao({ icone, titulo, valor, delta }: { icone: React.ReactNode; titulo: string; valor: string; delta: number | null }) {
   const t = useT();
   return (
-    <div className="flex flex-col gap-1 rounded-lg border border-border bg-card p-4">
-      <span className="flex items-center gap-1.5 text-xs text-text-muted">
-        <span className="text-accent" aria-hidden>{icone}</span>
-        {titulo}
-      </span>
+    <div className="cz-ergue flex flex-col gap-1 rounded-xl border border-border bg-card p-4">
+      <span className="cz-ladrilho cz-icone mb-2" aria-hidden>{icone}</span>
+      <span className="text-xs text-text-muted">{titulo}</span>
       <span className="text-2xl font-semibold tabular-nums">{valor}</span>
       {delta === null ? (
         <span className="text-[11px] text-text-subtle">{t("sem base para comparar")}</span>
