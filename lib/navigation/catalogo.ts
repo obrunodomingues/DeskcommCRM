@@ -167,6 +167,18 @@ export const NAV_CATALOG = [
   },
   // ---- Atendimento — onde o operador passa o dia ----
   {
+    // Fork Converzon: o resumo do dia numa tela só — mensagens esperando,
+    // consultas, pacientes novos, funil e site. É a tela que abre ao entrar
+    // (`homeDaInterface`). Sem `minRole`: cada número é lido com a sessão de
+    // quem abre, e os do site só aparecem para gerente.
+    href: "/app/inicio",
+    label: "Início",
+    description: "O resumo do dia: mensagens esperando, próximas consultas, pacientes novos, funil e site.",
+    icon: "House",
+    group: "atendimento",
+    sidebar: true,
+  },
+  {
     href: "/app/inbox",
     // Fork Converzon: o consultório só atende por WhatsApp — o nome e o ícone
     // dizem isso, em vez do "Inbox" genérico.
@@ -830,7 +842,8 @@ export const NAV_CATALOG = [
     // pessoa — orçamento e criativo são da empresa inteira. Mesmo grau dos
     // outros dois vizinhos do grupo.
     minRole: "manager",
-    sidebar: true,
+    // Fork Converzon: sai do menu lateral (continua em "Ver tudo em Análise")
+    // para "Início" caber no teto de 15 itens da dobra a 1280x900.
   },
   {
     // Fork Converzon: o Google Analytics do site, com gráficos, perto de Meta

@@ -61,6 +61,15 @@ const inter = localFont({
   variable: "--font-converzon",
 });
 
+// Fork Converzon: a serifa do site do cliente, só na saudação da tela Início
+// (`.cz-serifa`). Sem pré-carga: só é baixada por quem abre o Início.
+const cormorant = localFont({
+  src: [{ path: "./fonts/cormorant-garamond-600-latin.woff2", weight: "600", style: "normal" }],
+  display: "swap",
+  variable: "--font-converzon-serif",
+  preload: false,
+});
+
 const plexMono = localFont({
   src: [
     { path: "./fonts/ibm-plex-mono-400-latin-latin-ext.woff2", weight: "400", style: "normal" },
@@ -339,7 +348,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       lang="pt-BR"
       data-theme="light"
       suppressHydrationWarning
-      className={`${atkinson.variable} ${plexMono.variable} ${inter.variable}`}
+      className={`${atkinson.variable} ${plexMono.variable} ${inter.variable} ${cormorant.variable}`}
     >
       <head>
         {/* Primeiro de tudo: a cor da instalação, antes do CSS e do script de tema. */}

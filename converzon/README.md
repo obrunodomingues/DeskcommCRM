@@ -16,6 +16,7 @@ seguem nas imagens oficiais da mesma versão.
 | Menu: "Inbox" vira **WhatsApp**, com o ícone do WhatsApp | `lib/navigation/catalogo.ts`, `lib/navigation/registry.ts`, `app/app/inbox/page.tsx` |
 | **Métricas do site** (Análise): Google Analytics 4 com gráficos, comparação com o período anterior, "agora no site" e "Do site ao CRM" | `lib/converzon/{ga4,metricas-do-site}.ts`, `app/api/v1/converzon/metricas-do-site/route.ts`, `app/app/metricas-do-site/*` |
 | **Visual do consultório**: Inter, fundo cinza-claro com cartões brancos, verde do cliente, letras maiores, botões em pílula, cartões que sobem com o mouse e **barra lateral no tema oposto** ao da página (`[data-lado-invertido]`) | `app/converzon.css`, `app/layout.tsx`, `app/globals.css` (só o `@custom-variant dark`), `components/shell/{Sidebar,MobileSidebar,NavHub}.tsx`, `components/ui/button.tsx`, `app/fonts/inter-100-900-latin.woff2` |
+| **Início**: o resumo do dia (saudação, esperando resposta, pacientes novos, consultas e próximo horário livre, visitas do site, funil por etapa). Primeiro item de Atendimento e tela que abre ao entrar; Meta Ads saiu do menu lateral (fica no hub de Análise) para o teto de 15 | `app/app/inicio/*`, `app/api/v1/converzon/inicio/route.ts`, `lib/converzon/inicio.ts`, `lib/navigation/{catalogo,interface,registry}.ts`, `app/fonts/cormorant-garamond-600-latin.woff2` |
 
 ## Variáveis de ambiente do fork
 

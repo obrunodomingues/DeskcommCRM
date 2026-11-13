@@ -314,6 +314,102 @@
   box-shadow: 0 10px 20px -10px var(--color-accent-600);
 }
 
+.cz-ladrilho-azul,
+.cz-ladrilho-ambar,
+.cz-ladrilho-roxo {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  border-radius: 12px;
+  color: #ffffff;
+}
+.cz-ladrilho-azul {
+  background: linear-gradient(135deg, #1d4ed8, #5b8ef4);
+  box-shadow: 0 10px 20px -10px #1d4ed8;
+}
+.cz-ladrilho-ambar {
+  background: linear-gradient(135deg, #b4730f, #e3a548);
+  box-shadow: 0 10px 20px -10px #b4730f;
+}
+.cz-ladrilho-roxo {
+  background: linear-gradient(135deg, #6d28d9, #a98bf5);
+  box-shadow: 0 10px 20px -10px #6d28d9;
+}
+
+/* A serifa do site do cliente — só na saudação da tela Início. */
+.cz-serifa {
+  font-family: var(--font-converzon-serif), Georgia, serif;
+  letter-spacing: -0.01em;
+}
+
+/* Linha de lista clicável (tela Início): fundo suave e desliza para a direita. */
+.cz-linha {
+  transition:
+    background-color 0.18s ease,
+    transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.cz-linha:hover {
+  background-color: var(--color-surface-elevated);
+  transform: translateX(4px);
+}
+
+/* Etiquetas: quem está com a conversa e o tipo de consulta. Texto escuro sobre
+   fundo claro no tema claro (≥ 4,5:1 a 12px) e o inverso no escuro. */
+.cz-chip {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  height: 1.625rem;
+  padding: 0 0.625rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.cz-chip-neutro {
+  background: var(--color-surface-elevated);
+  color: var(--color-text-muted);
+}
+.cz-chip-equipe {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+.cz-chip-ia {
+  background: #f1eafd;
+  color: #6d28d9;
+}
+.cz-chip-nova {
+  background: #e8effd;
+  color: #1d4ed8;
+}
+.cz-chip-espera {
+  background: #fdf3e2;
+  color: #8a5208;
+}
+:root:root:root[data-theme="dark"] .cz-chip-ia {
+  background: rgba(169, 139, 245, 0.17);
+  color: #c4b0f8;
+}
+:root:root:root[data-theme="dark"] .cz-chip-nova {
+  background: rgba(109, 155, 247, 0.16);
+  color: #9dbcfa;
+}
+:root:root:root[data-theme="dark"] .cz-chip-espera {
+  background: rgba(227, 165, 72, 0.15);
+  color: #f0c17a;
+}
+
+/* Barra de etapa do funil (tela Início). */
+.cz-barra {
+  background: linear-gradient(90deg, var(--color-accent-600), var(--color-accent-400));
+  transition: filter 0.2s ease;
+}
+.cz-etapa:hover .cz-barra {
+  filter: brightness(1.15);
+}
+
 /* Cartão do funil: SÓ sombra e borda. O arrasto (@hello-pangea/dnd) move o
    cartão por `transform` inline; um `transform` nosso brigaria com ele.
    `--tw-shadow` em vez de `box-shadow`: o anel de seleção (`ring-2`) mora na
@@ -342,6 +438,7 @@ button[data-conversation-id]:hover {
 @media (prefers-reduced-motion: reduce) {
   .cz-ergue,
   .cz-ergue .cz-icone,
+  .cz-linha,
   [data-lado-invertido] nav li > a svg,
   [data-lado-invertido] > div.border-t > a svg,
   button[data-conversation-id] {
@@ -349,6 +446,7 @@ button[data-conversation-id]:hover {
   }
   .cz-ergue:hover,
   .cz-ergue:hover .cz-icone,
+  .cz-linha:hover,
   [data-lado-invertido] nav li > a:hover svg,
   [data-lado-invertido] > div.border-t > a:hover svg,
   button[data-conversation-id]:hover {
