@@ -23,6 +23,10 @@ export interface ConversationCounts {
   closed?: number;
   /** A aba "Arquivadas" (#923). Opcional pelo mesmo motivo: cache antigo não tem. */
   archived?: number;
+  /** Fork Converzon — aba "Novas mensagens". Opcional: cache antigo não tem. */
+  novas?: number;
+  /** Fork Converzon — aba "Aguardando resposta". Opcional: cache antigo não tem. */
+  aguardando_resposta?: number;
 }
 
 /** Os filtros auxiliares ligados na barra, que a contagem tem de aplicar junto. */

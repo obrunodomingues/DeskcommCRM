@@ -1,6 +1,6 @@
 "use client";
 import { useT } from "@/hooks/i18n/useT";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CaretLeft, CaretRight, MagnifyingGlass } from "@/lib/ui/icons";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,7 +37,19 @@ import { useConversationCounts } from "@/hooks/inbox/useConversationCounts";
 import { roleAtLeast, type Role, type VisibilityMode } from "@/lib/auth/types";
 import { SeletorDeAtendente } from "@/components/inbox/SeletorDeAtendente";
 
-export type InboxTab = "unassigned" | "mine" | "all" | "closed" | "archived" | "ai";
+export type InboxTab =
+  | "unassigned"
+  | "mine"
+  | "all"
+  | "closed"
+  | "archived"
+  | "ai"
+  // Fork Converzon (lib/inbox/abas-converzon.ts): as abas do consultório.
+  | "novas"
+  | "aguardando_resposta";
+
+/** Fork Converzon: o "passado" fica numa segunda linha, discreta. */
+const ABAS_DISCRETAS: ReadonlySet<InboxTab> = new Set(["closed", "archived"]);
 
 /**
  * A faixa na ORDEM DO TRABALHO (#2498): primeiro o que o robô conduz, depois o
@@ -50,15 +62,12 @@ export type InboxTab = "unassigned" | "mine" | "all" | "closed" | "archived" | "
  * array, então as setas continuam vizinha a vizinha.
  */
 const INBOX_TABS: { value: InboxTab; label: string }[] = [
-  // "Automático", não "IA": a palavra deste ator já é contrato em quatro arquivos
-  // e no dicionário, e `handoff-por-orcamento.test.ts` usa literalmente "Voltar
-  // para a IA" como a sabotagem que deve reprovar. O rótulo não mudou quando o
-  // significado mudou (deixou de filtrar `ai_handling` e passou a perguntar a
-  // régua do motor) — e a posição sim: ela era a última fora do padrão.
-  { value: "ai", label: "Automático" },
-  { value: "unassigned", label: "Fila" },
-  { value: "mine", label: "Minhas" },
+  // Fork Converzon: a faixa do consultório substitui Automático/Fila/Minhas
+  // (ver lib/inbox/abas-converzon.ts). Os filtros antigos continuam existindo em
+  // `tabToFilter` e nas contagens — só não aparecem mais aqui.
   { value: "all", label: "Todas" },
+  { value: "novas", label: "Novas mensagens" },
+  { value: "aguardando_resposta", label: "Aguardando resposta" },
   { value: "closed", label: "Fechadas" },
   // "Arquivadas" fica ao lado de "Fechadas" porque as duas são passado — e
   // separada dela porque são passados diferentes (#923): fechada é atendimento
@@ -247,6 +256,8 @@ export function InboxFilters({ value, onChange }: Props) {
     all: counts?.all,
     closed: counts?.closed,
     archived: counts?.archived,
+    novas: counts?.novas,
+    aguardando_resposta: counts?.aguardando_resposta,
   };
   // Filtrar por um número que saiu da lista (o operador acabou de excluir o
   // canal) deixa o inbox mostrando um subconjunto — às vezes vazio — sem nada na
@@ -677,20 +688,29 @@ export function InboxFilters({ value, onChange }: Props) {
             onScroll={updateMoreTabs}
             className="h-auto min-w-0 flex-1 flex-wrap justify-between gap-x-1 gap-y-2 rounded-none bg-transparent p-0 [scrollbar-width:none]"
           >
-            {tabs.map((tab) => {
+            {tabs.map((tab, i) => {
               const meta = INBOX_TABS.find((t) => t.value === tab)!;
               const count = countFor[tab];
+              const discreta = ABAS_DISCRETAS.has(tab);
+              // Fork Converzon: Fechadas/Arquivadas começam sempre numa linha
+              // própria — o `basis-full` quebra a faixa antes da primeira delas.
+              const quebraAntes = discreta && (i === 0 || !ABAS_DISCRETAS.has(tabs[i - 1]!));
               return (
-                <TabsTrigger
-                  key={tab}
-                  value={tab}
-                  className="shrink-0 gap-1 rounded-none border-b-2 border-transparent px-0 pb-2 pt-1 text-xs font-medium text-text-muted data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:text-text data-[state=active]:shadow-none"
-                >
-                  {t(meta.label)}
-                  {typeof count === "number" && count > 0 && (
-                    <span className="text-[11px] tabular-nums text-text-subtle">{count}</span>
-                  )}
-                </TabsTrigger>
+                <Fragment key={tab}>
+                  {quebraAntes && <span aria-hidden className="h-0 basis-full" />}
+                  <TabsTrigger
+                    value={tab}
+                    className={cn(
+                      "shrink-0 gap-1 rounded-none border-b-2 border-transparent px-0 pb-2 pt-1 font-medium data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:text-text data-[state=active]:shadow-none",
+                      discreta ? "text-[11px] text-text-subtle" : "text-xs text-text-muted",
+                    )}
+                  >
+                    {t(meta.label)}
+                    {typeof count === "number" && count > 0 && (
+                      <span className="text-[11px] tabular-nums text-text-subtle">{count}</span>
+                    )}
+                  </TabsTrigger>
+                </Fragment>
               );
             })}
           </TabsList>

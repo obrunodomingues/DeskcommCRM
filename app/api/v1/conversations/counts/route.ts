@@ -18,6 +18,7 @@ import { traduzir } from "@/lib/i18n/dicionario";
 import { CONVERSATION_TERMINAL_STATUSES } from "@/lib/schemas";
 import { orgTemAutomatico } from "@/lib/ai/agents/org-tem-automatico";
 import { comandosDaFila } from "@/lib/inbox/comando-da-conversa";
+import { COMANDOS_SEM_A_IA } from "@/lib/inbox/abas-converzon";
 import { aplicarMarcadores, modoDeEtiqueta } from "@/lib/inbox/marcador-da-conversa";
 import { createClient } from "@/lib/supabase/server";
 import { idsDeContatosPessoais } from "../_handler";
@@ -149,7 +150,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   // convenção da regra: assume que há automático.
   const automaticoDaOrg = await orgTemAutomatico(supabase, org);
 
-  const [fila, automatico, mine, all, closed, archived] = await Promise.all([
+  const [fila, automatico, mine, all, closed, archived, novas, aguardandoResposta] = await Promise.all([
     // A FILA DEIXOU DE SER "sem dono + status de espera".
     //
     // Aquele par contava como trabalho humano pendente tudo que o robô estava
@@ -187,10 +188,30 @@ export async function GET(req: NextRequest): Promise<Response> {
     // para que arquivar seja reversível e auditável sem se confundir com o
     // encerramento do atendimento.
     countExact().eq("status", "archived"),
+    // Fork Converzon — as abas "Novas mensagens" e "Aguardando resposta". Mesmo
+    // predicado que `tabToFilter` pede à lista (InboxLayout): abertas, fora de
+    // grupo, com a última fala do cliente sem resposta; Aguardando só onde a IA
+    // saiu (ninguém no comando ou uma pessoa assumiu).
+    countExact()
+      .eq("converzon_sem_resposta", true)
+      .eq("is_group", false)
+      .not("status", "in", `(${CONVERSATION_TERMINAL_STATUSES.join(",")})`),
+    countExact()
+      .eq("converzon_sem_resposta", true)
+      .eq("is_group", false)
+      .not("status", "in", `(${CONVERSATION_TERMINAL_STATUSES.join(",")})`)
+      .in("comando_da_conversa", COMANDOS_SEM_A_IA),
   ]);
 
   const firstErr =
-    fila.error ?? automatico.error ?? mine.error ?? all.error ?? closed.error ?? archived.error;
+    fila.error ??
+    automatico.error ??
+    mine.error ??
+    all.error ??
+    closed.error ??
+    archived.error ??
+    novas.error ??
+    aguardandoResposta.error;
   if (firstErr) {
     return fail("internal_error", firstErr.message, 500, { requestId });
   }
@@ -208,6 +229,8 @@ export async function GET(req: NextRequest): Promise<Response> {
       all: all.count ?? 0,
       closed: closed.count ?? 0,
       archived: archived.count ?? 0,
+      novas: novas.count ?? 0,
+      aguardando_resposta: aguardandoResposta.count ?? 0,
     },
     { requestId },
   );

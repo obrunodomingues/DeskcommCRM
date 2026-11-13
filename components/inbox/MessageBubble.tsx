@@ -49,6 +49,9 @@ interface Props {
    * seu. Por isso a ausência do id NÃO cai em "Você": quem não sabe quem está
    * lendo (a leitura do super-admin em `AdminThread`, por exemplo) rotula
    * "Atendente", que é verdadeiro para todo mundo.
+   *
+   * Fork Converzon: o balão diz "CRM" para quem quer que tenha digitado, então
+   * o id não é mais lido aqui. A prop fica para não divergir dos chamadores.
    */
   viewerUserId?: string | null;
   onEditar?: (text: string) => Promise<void>;
@@ -57,9 +60,43 @@ interface Props {
   onRestaurar?: () => Promise<void>;
 }
 
-function AckIndicator({ status, t }: { status: string; t: (texto: string) => string }) {
+/**
+ * Fork Converzon — A COR DO BALÃO DIZ QUEM RESPONDEU.
+ *
+ * O rótulo em cima do balão ("Celular", "IA") continua; a cor é para bater o
+ * olho na conversa. CRM (`user`/`crm`) e o resto seguem na cor da marca, como no
+ * upstream. Celular é azul e IA é roxo — as mesmas famílias que a lista do inbox
+ * já usa para "pessoa" e "automático" (`ConversationListItem`).
+ *
+ * Troca as VARIÁVEIS do acento só dentro do balão, em vez de trocar a classe de
+ * fundo: tudo que o balão desenha com `primary`/`primary-foreground` (botão de
+ * opções, citação, anexo) acompanha sem precisar de um ramo por elemento.
+ */
+export function corDeQuemEnviou(sentVia: string | null | undefined): string | undefined {
+  if (sentVia === "external_device") return "[--color-accent:#2563eb] [--color-accent-fg:#ffffff]";
+  if (sentVia === "ai") return "[--color-accent:#7c3aed] [--color-accent-fg:#ffffff]";
+  return undefined;
+}
+
+function AckIndicator({
+  status,
+  t,
+  sobreCor = false,
+}: {
+  status: string;
+  t: (texto: string) => string;
+  /** Balão azul/roxo (fork Converzon): o azul do "lida" sumiria no fundo. */
+  sobreCor?: boolean;
+}) {
   if (status === "read") {
-    return <Checks size={12} weight="bold" className="text-blue-400" aria-label={t("Lida")} />;
+    return (
+      <Checks
+        size={12}
+        weight="bold"
+        className={sobreCor ? "text-sky-200" : "text-blue-400"}
+        aria-label={t("Lida")}
+      />
+    );
   }
   if (status === "delivered") {
     return <Checks size={12} weight="bold" className="text-current/70" aria-label={t("Entregue")} />;
@@ -77,7 +114,6 @@ export function MessageBubble({
   onResponder,
   citada,
   reacoes,
-  viewerUserId,
   onEditar,
   onApagar,
   onOcultar,
@@ -190,15 +226,11 @@ export function MessageBubble({
     // #866 visto de dentro da tela.
     if (message.sent_via === "system") return "Sistema";
     if (message.sent_via === "external_device") return "Celular";
-    if (message.sent_via === "user" || message.sent_via === "crm") {
-      // "Você" exige as DUAS pontas: saber quem lê e saber quem enviou. Falta
-      // qualquer uma, o rótulo cai para "Atendente" — que continua dizendo o
-      // que `sent_via` de fato garante (um humano, pelo CRM) sem afirmar uma
-      // identidade que o dado não sustenta.
-      return viewerUserId != null && message.sent_by_user_id === viewerUserId
-        ? "Você"
-        : "Atendente";
-    }
+    // Fork Converzon: digitada no CRM diz "CRM", seja quem for que digitou. Mais
+    // de uma pessoa da equipe atende pela mesma conversa, e o balão verde faz par
+    // com "Celular" (azul) e "IA" (roxo) — o rótulo diz POR ONDE saiu, como os
+    // outros dois. O upstream separava "Você"/"Atendente" por `viewerUserId`.
+    if (message.sent_via === "user" || message.sent_via === "crm") return "CRM";
     return null;
   })();
   // QUEM MANDOU, num grupo. Só faz sentido em mensagem RECEBIDA: uma mensagem
@@ -246,7 +278,7 @@ export function MessageBubble({
                 "rounded-2xl px-3 py-2 shadow-sm",
                 temMenu && "pr-8",
                 isOutbound
-                  ? "rounded-br-sm bg-primary text-primary-foreground"
+                  ? cn("rounded-br-sm bg-primary text-primary-foreground", corDeQuemEnviou(message.sent_via))
                   : "rounded-bl-sm bg-muted text-foreground",
               ),
           isFailed && "border border-destructive",
@@ -330,7 +362,7 @@ export function MessageBubble({
             )}
           >
             <div className="font-medium opacity-80">
-              {citada.direction === "outbound" ? t("Você") : t("Cliente")}
+              {citada.direction === "outbound" ? t("CRM") : t("Cliente")}
             </div>
             {/*
               A CITADA PODE TER SIDO APAGADA — e aí o texto dela não volta aqui.
@@ -450,7 +482,13 @@ export function MessageBubble({
           {showCitationButton && (
             <CitationButton citations={citations} messageId={message.id} />
           )}
-          {isOutbound && !isFailed && <AckIndicator status={message.status} t={t} />}
+          {isOutbound && !isFailed && (
+            <AckIndicator
+              status={message.status}
+              t={t}
+              sobreCor={Boolean(corDeQuemEnviou(message.sent_via))}
+            />
+          )}
           {isFailed && (
             // Provider local: o painel do inbox não tem TooltipProvider ancestral e
             // este Tooltip só monta em mensagem failed — sem o provider, abrir uma

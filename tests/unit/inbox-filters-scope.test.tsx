@@ -45,7 +45,9 @@ vi.mock("@/hooks/contacts/useContactTagVocabulary", () => ({
   useContactTagVocabulary: () => ({ data: tagsDoContatoRef.current }),
 }));
 vi.mock("@/hooks/inbox/useConversationCounts", () => ({
-  useConversationCounts: () => ({ data: { unassigned: 3, mine: 2, all: 5 } }),
+  useConversationCounts: () => ({
+    data: { unassigned: 3, mine: 2, all: 5, novas: 4, aguardando_resposta: 1 },
+  }),
 }));
 
 const VALUE: InboxFiltersValue = { tab: "unassigned", search: "", onlyUnread: false };
@@ -100,9 +102,10 @@ describe("visibleInboxTabs (lógica pura de visões)", () => {
   it("admin sempre vê 'all'", () => {
     expect(visibleInboxTabs("admin", "own")).toContain("all");
   });
-  it("as 3 visões nomeadas existem (Minhas/Fila/Todas) para manager", () => {
+  // Fork Converzon: a faixa é Todas/Novas/Aguardando (lib/inbox/abas-converzon.ts).
+  it("as 3 visões do consultório existem (Todas/Novas/Aguardando) para manager", () => {
     const tabs = visibleInboxTabs("manager", "own_and_unassigned");
-    expect(tabs).toEqual(expect.arrayContaining(["mine", "unassigned", "all"]));
+    expect(tabs).toEqual(expect.arrayContaining(["all", "novas", "aguardando_resposta"]));
   });
 });
 
@@ -135,7 +138,8 @@ describe("InboxFilters render — 3 visões + escopo", () => {
       expect(screen.getByRole("button", { name: "Aba anterior" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Próxima aba" })).toBeInTheDocument();
       fireEvent.click(screen.getByRole("button", { name: "Próxima aba" }));
-      expect(onChange).toHaveBeenCalledWith({ ...VALUE, tab: "closed" });
+      // Fork Converzon: depois de Todas vem Novas mensagens.
+      expect(onChange).toHaveBeenCalledWith({ ...VALUE, tab: "novas" });
 
       width = 260;
       act(() => onResize([], {} as ResizeObserver));
@@ -157,11 +161,11 @@ describe("InboxFilters render — 3 visões + escopo", () => {
     expect(disconnect).toHaveBeenCalled();
   });
 
-  it("agent em modo own*: mostra Minhas e Fila, esconde Todas", () => {
+  it("agent em modo own*: mostra Novas e Aguardando, esconde Todas", () => {
     setOrg("agent", "own_and_unassigned");
     render(<InboxFilters value={VALUE} onChange={() => {}} />);
-    expect(screen.getByRole("tab", { name: /Minhas/ })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /Fila/ })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Novas mensagens/ })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Aguardando resposta/ })).toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: /Todas/ })).not.toBeInTheDocument();
   });
 
@@ -171,11 +175,11 @@ describe("InboxFilters render — 3 visões + escopo", () => {
     expect(screen.getByRole("tab", { name: /Todas/ })).toBeInTheDocument();
   });
 
-  it("contagens por visão são renderizadas (Fila=3, Minhas=2)", () => {
+  it("contagens por visão são renderizadas (Novas=4, Aguardando=1, Todas=5)", () => {
     setOrg("manager", "all");
     render(<InboxFilters value={VALUE} onChange={() => {}} />);
-    expect(screen.getByRole("tab", { name: /Fila/ })).toHaveTextContent("3");
-    expect(screen.getByRole("tab", { name: /Minhas/ })).toHaveTextContent("2");
+    expect(screen.getByRole("tab", { name: /Novas mensagens/ })).toHaveTextContent("4");
+    expect(screen.getByRole("tab", { name: /Aguardando resposta/ })).toHaveTextContent("1");
     expect(screen.getByRole("tab", { name: /Todas/ })).toHaveTextContent("5");
   });
 });

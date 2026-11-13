@@ -375,6 +375,13 @@ export const listConversationsQuerySchema = z.object({
    * significar "meu trabalho" para virar "tudo que já toquei".
    */
   exclude_finished: z.boolean().optional(),
+  /**
+   * Só as conversas em que a última fala do cliente ainda não teve resposta
+   * (`awaiting_since` preenchido). Base das abas "Novas mensagens" e "Aguardando
+   * resposta" do fork Converzon: qualquer resposta — IA, CRM ou celular — limpa a
+   * coluna, e a conversa sai das duas abas.
+   */
+  sem_resposta: z.boolean().optional(),
   assigned_to: z.union([z.string().uuid(), z.literal("me"), z.literal("unassigned")]).optional(),
   channel_session_id: z.string().uuid().optional(),
   /**

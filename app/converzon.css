@@ -1,0 +1,455 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Fork Converzon — o visual do consultório.
+
+   O painel antigo do cliente (Inter, fundo cinza-claro com cartões brancos,
+   verde-água, letras maiores) mais o movimento das referências aprovadas em
+   12/11/2026. SÓ aparência: cor, fonte, tamanho, canto, sombra e movimento.
+   Nenhuma regra daqui muda o que um controle faz.
+
+   Por que um arquivo à parte, e não o `globals.css`: a paleta do produto é
+   congelada em testes (`extrairRegua`, `regua-do-produto.ts`,
+   `branding-contraste`...). Mexer nela quebraria a régua inteira; sobrepor por
+   aqui deixa o upstream intacto e o rebase limpo.
+
+   Carregado DEPOIS do `globals.css` (`app/layout.tsx`). Especificidade
+   `:root:root:root` (0,3,0): vence o `:root` e o `[data-theme]` (0,1,0) do
+   produto e o `:root:root` (0,2,0) da cor de /admin/marca.
+
+   BARRA LATERAL INVERTIDA: `<aside data-lado-invertido>` recebe o tema OPOSTO
+   ao da página — escura no claro, clara no escuro. Os blocos abaixo redeclaram
+   TODO token (inclusive as pontes `--background`, `--card`…), porque
+   custom property que referencia outra é resolvida onde é declarada: sem
+   redeclarar, a barra herdaria o valor já resolvido da página. A variante
+   `dark:` acompanha (ver `@custom-variant dark` no `globals.css`).
+   Vigiado por tests/unit/converzon-visual.test.ts.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* ── Tema claro: a página clara, ilhas claras e a barra quando a página é escura ── */
+:root:root:root,
+:root:root:root [data-theme="light"],
+:root:root:root[data-theme="dark"] [data-lado-invertido] {
+  color-scheme: light;
+
+  --color-bg: #f4f5f7;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #f1f3f6;
+  --color-overlay: rgba(15, 23, 32, 0.45);
+
+  --color-text: #0f1720;
+  --color-text-muted: #5f6b78;
+  --color-text-subtle: #6b7684;
+
+  --color-border: #e6e9ee;
+  --color-border-strong: #d6dce3;
+
+  --color-accent-50: #f0f7f5;
+  --color-accent-100: #dfeeea;
+  --color-accent-200: #c0ddd5;
+  --color-accent-300: #96c8bc;
+  --color-accent-400: #69ab9b;
+  --color-accent-500: #3f7d70;
+  --color-accent-600: #2f6357;
+  --color-accent-700: #264f46;
+  --color-accent-800: #1f403a;
+  --color-accent-900: #1a3530;
+  --color-accent-950: #0d1d1a;
+  --color-accent: var(--color-accent-600);
+  --color-accent-fg: #ffffff;
+  --color-accent-soft: var(--color-accent-100);
+  --color-accent-hover: var(--color-accent-700);
+
+  --color-neutral-50: #fafbfc;
+  --color-neutral-100: #f1f3f6;
+  --color-neutral-200: #e6e9ee;
+  --color-neutral-300: #d6dce3;
+  --color-neutral-400: #9aa3b2;
+  --color-neutral-500: #737d8c;
+  --color-neutral-600: #5f6b78;
+  --color-neutral-700: #38414f;
+  --color-neutral-800: #232b36;
+  --color-neutral-900: #0f1720;
+  --color-neutral-950: #070b10;
+
+  --color-success: #5a8a5f;
+  --color-success-bg: rgba(90, 138, 95, 0.12);
+  --color-success-fg: #41673f;
+  --color-warning: #b07a2b;
+  --color-warning-bg: rgba(176, 122, 43, 0.12);
+  --color-warning-fg: #875a1a;
+  --color-error: #b3261e;
+  --color-error-bg: rgba(179, 38, 30, 0.1);
+  --color-error-fg: #8f1f18;
+  --color-info: #3b5bdb;
+  --color-info-bg: rgba(59, 91, 219, 0.1);
+  --color-info-fg: #2f4ab3;
+
+  --shadow-xs: 0 1px 2px 0 rgba(15, 23, 32, 0.05);
+  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 32, 0.04), 0 4px 12px -2px rgba(15, 23, 32, 0.05);
+  --shadow-md: 0 1px 2px 0 rgba(15, 23, 32, 0.04), 0 12px 28px -8px rgba(15, 23, 32, 0.1);
+  --shadow-lg: 0 2px 6px 0 rgba(15, 23, 32, 0.04), 0 22px 44px -14px rgba(15, 23, 32, 0.2);
+  --shadow-xl: 0 30px 60px -18px rgba(15, 23, 32, 0.28), 0 8px 16px -4px rgba(15, 23, 32, 0.08);
+
+  --background: var(--color-bg);
+  --foreground: var(--color-text);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-text);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-text);
+  --primary: var(--color-accent);
+  --primary-foreground: var(--color-accent-fg);
+  --secondary: var(--color-surface-elevated);
+  --secondary-foreground: var(--color-text);
+  --muted: var(--color-surface-elevated);
+  --muted-foreground: var(--color-text-muted);
+  --accent-foreground: var(--color-accent-fg);
+  --destructive: var(--color-error);
+  --destructive-foreground: #ffffff;
+  --border: var(--color-border);
+  --input: var(--color-border);
+  --ring: var(--color-accent-500);
+
+  --agenda-pessoa-1: #ac4d40;
+  --agenda-pessoa-2: #bd7c20;
+  --agenda-pessoa-3: #7e6f01;
+  --agenda-pessoa-4: #11a19b;
+  --agenda-pessoa-5: #0b7a9a;
+  --agenda-pessoa-6: #608bda;
+  --agenda-pessoa-7: #7b5bad;
+  --agenda-pessoa-8: #cc77b1;
+}
+
+/* ── Tema escuro: a página escura, ilhas escuras e a barra quando a página é clara ── */
+:root:root:root[data-theme="dark"],
+:root:root:root [data-theme="dark"],
+:root:root:root:not([data-theme="dark"]) [data-lado-invertido] {
+  color-scheme: dark;
+
+  --color-bg: #0b1015;
+  --color-surface: #121a21;
+  --color-surface-elevated: #1a2430;
+  --color-overlay: rgba(0, 0, 0, 0.6);
+
+  --color-text: #eef2f5;
+  --color-text-muted: #a3afbb;
+  --color-text-subtle: #7d8a97;
+
+  --color-border: #22303b;
+  --color-border-strong: #2e3e4c;
+
+  --color-accent-50: #f0f7f5;
+  --color-accent-100: #dfeeea;
+  --color-accent-200: #c0ddd5;
+  --color-accent-300: #96c8bc;
+  --color-accent-400: #69ab9b;
+  --color-accent-500: #3f7d70;
+  --color-accent-600: #2f6357;
+  --color-accent-700: #264f46;
+  --color-accent-800: #1f403a;
+  --color-accent-900: #1a3530;
+  --color-accent-950: #0d1d1a;
+  --color-accent: var(--color-accent-400);
+  --color-accent-fg: #0b1015;
+  --color-accent-soft: rgba(105, 171, 155, 0.16);
+  --color-accent-hover: var(--color-accent-300);
+
+  --color-neutral-50: #eef2f5;
+  --color-neutral-100: #d9e0e6;
+  --color-neutral-200: #b8c2cc;
+  --color-neutral-300: #a3afbb;
+  --color-neutral-400: #7d8a97;
+  --color-neutral-500: #2e3e4c;
+  --color-neutral-600: #22303b;
+  --color-neutral-700: #1a2430;
+  --color-neutral-800: #121a21;
+  --color-neutral-900: #0b1015;
+  --color-neutral-950: #06090c;
+
+  --color-success: #82a077;
+  --color-success-bg: rgba(130, 160, 119, 0.18);
+  --color-success-fg: #a4ba9a;
+  --color-warning: #d09455;
+  --color-warning-bg: rgba(208, 148, 85, 0.18);
+  --color-warning-fg: #e0ad77;
+  --color-error: #e07a6d;
+  --color-error-bg: rgba(224, 122, 109, 0.18);
+  --color-error-fg: #eb9a8f;
+  --color-info: #7f9cf5;
+  --color-info-bg: rgba(127, 156, 245, 0.18);
+  --color-info-fg: #a5bbf8;
+
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.35);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4), 0 4px 12px -2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 22px 44px -14px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  --shadow-xl: 0 30px 60px -18px rgba(0, 0, 0, 0.75), 0 8px 16px -4px rgba(0, 0, 0, 0.5);
+
+  --background: var(--color-bg);
+  --foreground: var(--color-text);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-text);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-text);
+  --primary: var(--color-accent);
+  --primary-foreground: var(--color-accent-fg);
+  --secondary: var(--color-surface-elevated);
+  --secondary-foreground: var(--color-text);
+  --muted: var(--color-surface-elevated);
+  --muted-foreground: var(--color-text-muted);
+  --accent-foreground: var(--color-accent-fg);
+  --destructive: var(--color-error);
+  --destructive-foreground: #ffffff;
+  --border: var(--color-border);
+  --input: var(--color-border);
+  --ring: var(--color-accent-400);
+
+  --agenda-pessoa-1: #f89080;
+  --agenda-pessoa-2: #ca8931;
+  --agenda-pessoa-3: #d1bf55;
+  --agenda-pessoa-4: #0cafa8;
+  --agenda-pessoa-5: #4ccffb;
+  --agenda-pessoa-6: #6c97e7;
+  --agenda-pessoa-7: #be9ef6;
+  --agenda-pessoa-8: #cc77b1;
+}
+
+/* ── Fonte, tamanhos e cantos (valem nos dois temas, por herança) ──
+   `--font-atkinson` é a variável que o produto inteiro usa (`font-sans` e o
+   `<body>`); apontá-la para a Inter troca a fonte sem tocar no `@theme`. A
+   Inter é carregada em `app/layout.tsx` como `--font-converzon`. */
+:root:root:root {
+  --font-atkinson: var(--font-converzon);
+
+  --text-xs: 0.8125rem; /* 12 → 13px */
+  --text-sm: 0.9375rem; /* 14 → 15px: o texto do dia a dia */
+  --text-2xl: 1.75rem; /* 24 → 28px: título das telas */
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+}
+
+/* Os tamanhos fixos pequenos não passam pela variável: 215 usos de 10 e 11px.
+   Sobem um ponto — mais que isso estoura os selos de 16px de altura. */
+.text-\[10px\] {
+  font-size: 11px;
+}
+.text-\[11px\] {
+  font-size: 12px;
+}
+
+/* ── Barra lateral ── */
+/* `color` também: o texto sem cor própria (o nome da instalação no alto) herda
+   a cor já resolvida da PÁGINA, e sumiria no fundo invertido. */
+[data-lado-invertido] {
+  background-color: var(--color-bg);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+[data-lado-invertido] nav h2 > button {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+[data-lado-invertido] nav li > a,
+[data-lado-invertido] > div.border-t > a {
+  padding-block: 0.4375rem;
+  border-radius: 12px;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease;
+}
+[data-lado-invertido] nav li > a svg,
+[data-lado-invertido] > div.border-t > a svg {
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+[data-lado-invertido] nav li > a:hover svg,
+[data-lado-invertido] > div.border-t > a:hover svg {
+  transform: translateX(3px);
+}
+[data-lado-invertido] nav li > a[aria-current="page"],
+[data-lado-invertido] > div.border-t > a[aria-current="page"] {
+  background-color: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-weight: 600;
+}
+[data-lado-invertido] nav li > a:not([aria-current="page"]):hover,
+[data-lado-invertido] > div.border-t > a:not([aria-current="page"]):hover {
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text);
+}
+
+/* ── Movimento: as coisas reagem ao mouse ── */
+
+/* Cartão clicável: sobe e ganha sombra; o ícone de dentro cresce e gira. */
+.cz-ergue {
+  transition:
+    transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.2s ease;
+}
+.cz-ergue:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-border-strong);
+}
+.cz-ergue .cz-icone {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.cz-ergue:hover .cz-icone {
+  transform: scale(1.1) rotate(-4deg);
+}
+
+/* Ladrilho de ícone em verde, como nos cartões de número da proposta. */
+.cz-ladrilho {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  border-radius: 12px;
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--color-accent-600), var(--color-accent-400));
+  box-shadow: 0 10px 20px -10px var(--color-accent-600);
+}
+
+.cz-ladrilho-azul,
+.cz-ladrilho-ambar,
+.cz-ladrilho-roxo {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  border-radius: 12px;
+  color: #ffffff;
+}
+.cz-ladrilho-azul {
+  background: linear-gradient(135deg, #1d4ed8, #5b8ef4);
+  box-shadow: 0 10px 20px -10px #1d4ed8;
+}
+.cz-ladrilho-ambar {
+  background: linear-gradient(135deg, #b4730f, #e3a548);
+  box-shadow: 0 10px 20px -10px #b4730f;
+}
+.cz-ladrilho-roxo {
+  background: linear-gradient(135deg, #6d28d9, #a98bf5);
+  box-shadow: 0 10px 20px -10px #6d28d9;
+}
+
+/* A serifa do site do cliente — só na saudação da tela Início. */
+.cz-serifa {
+  font-family: var(--font-converzon-serif), Georgia, serif;
+  letter-spacing: -0.01em;
+}
+
+/* Linha de lista clicável (tela Início): fundo suave e desliza para a direita. */
+.cz-linha {
+  transition:
+    background-color 0.18s ease,
+    transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.cz-linha:hover {
+  background-color: var(--color-surface-elevated);
+  transform: translateX(4px);
+}
+
+/* Etiquetas: quem está com a conversa e o tipo de consulta. Texto escuro sobre
+   fundo claro no tema claro (≥ 4,5:1 a 12px) e o inverso no escuro. */
+.cz-chip {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  height: 1.625rem;
+  padding: 0 0.625rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.cz-chip-neutro {
+  background: var(--color-surface-elevated);
+  color: var(--color-text-muted);
+}
+.cz-chip-equipe {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+.cz-chip-ia {
+  background: #f1eafd;
+  color: #6d28d9;
+}
+.cz-chip-nova {
+  background: #e8effd;
+  color: #1d4ed8;
+}
+.cz-chip-espera {
+  background: #fdf3e2;
+  color: #8a5208;
+}
+:root:root:root[data-theme="dark"] .cz-chip-ia {
+  background: rgba(169, 139, 245, 0.17);
+  color: #c4b0f8;
+}
+:root:root:root[data-theme="dark"] .cz-chip-nova {
+  background: rgba(109, 155, 247, 0.16);
+  color: #9dbcfa;
+}
+:root:root:root[data-theme="dark"] .cz-chip-espera {
+  background: rgba(227, 165, 72, 0.15);
+  color: #f0c17a;
+}
+
+/* Barra de etapa do funil (tela Início). */
+.cz-barra {
+  background: linear-gradient(90deg, var(--color-accent-600), var(--color-accent-400));
+  transition: filter 0.2s ease;
+}
+.cz-etapa:hover .cz-barra {
+  filter: brightness(1.15);
+}
+
+/* Cartão do funil: SÓ sombra e borda. O arrasto (@hello-pangea/dnd) move o
+   cartão por `transform` inline; um `transform` nosso brigaria com ele.
+   `--tw-shadow` em vez de `box-shadow`: o anel de seleção (`ring-2`) mora na
+   mesma propriedade e sumiria no hover. */
+[data-rfd-draggable-id] {
+  transition:
+    box-shadow 0.25s ease,
+    border-color 0.2s ease;
+}
+[data-rfd-draggable-id]:hover {
+  --tw-shadow: var(--shadow-lg);
+  border-color: var(--color-border-strong);
+}
+
+/* Linha da lista de conversas: desliza um pouco para a direita. */
+button[data-conversation-id] {
+  transition:
+    transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.18s ease;
+}
+button[data-conversation-id]:hover {
+  transform: translateX(3px);
+}
+
+/* Quem pediu menos movimento no sistema não vê nada se mexer. */
+@media (prefers-reduced-motion: reduce) {
+  .cz-ergue,
+  .cz-ergue .cz-icone,
+  .cz-linha,
+  [data-lado-invertido] nav li > a svg,
+  [data-lado-invertido] > div.border-t > a svg,
+  button[data-conversation-id] {
+    transition: none;
+  }
+  .cz-ergue:hover,
+  .cz-ergue:hover .cz-icone,
+  .cz-linha:hover,
+  [data-lado-invertido] nav li > a:hover svg,
+  [data-lado-invertido] > div.border-t > a:hover svg,
+  button[data-conversation-id]:hover {
+    transform: none;
+  }
+}

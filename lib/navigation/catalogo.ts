@@ -167,10 +167,24 @@ export const NAV_CATALOG = [
   },
   // ---- Atendimento — onde o operador passa o dia ----
   {
+    // Fork Converzon: o resumo do dia numa tela só — mensagens esperando,
+    // consultas, pacientes novos, funil e site. É a tela que abre ao entrar
+    // (`homeDaInterface`). Sem `minRole`: cada número é lido com a sessão de
+    // quem abre, e os do site só aparecem para gerente.
+    href: "/app/inicio",
+    label: "Início",
+    description: "O resumo do dia: mensagens esperando, próximas consultas, pacientes novos, funil e site.",
+    icon: "House",
+    group: "atendimento",
+    sidebar: true,
+  },
+  {
     href: "/app/inbox",
-    label: "Inbox",
+    // Fork Converzon: o consultório só atende por WhatsApp — o nome e o ícone
+    // dizem isso, em vez do "Inbox" genérico.
+    label: "WhatsApp",
     description: "As conversas de WhatsApp, com você e a IA atendendo lado a lado.",
-    icon: "Inbox",
+    icon: "WhatsappLogo",
     group: "atendimento",
     sidebar: true,
     // Quantas conversas a IA passou para a equipe e esperam uma pessoa (aba Fila).
@@ -828,6 +842,20 @@ export const NAV_CATALOG = [
     // pessoa — orçamento e criativo são da empresa inteira. Mesmo grau dos
     // outros dois vizinhos do grupo.
     minRole: "manager",
+    // Fork Converzon: sai do menu lateral (continua em "Ver tudo em Análise")
+    // para "Início" caber no teto de 15 itens da dobra a 1280x900.
+  },
+  {
+    // Fork Converzon: o Google Analytics do site, com gráficos, perto de Meta
+    // Ads — o que trouxe a pessoa ao site e o que ela fez lá. Mesmo `manager`
+    // dos vizinhos: os números são da empresa inteira.
+    href: "/app/metricas-do-site",
+    label: "Métricas do site",
+    description: "Visitas, origens, páginas e contatos do site pelo Google Analytics, com gráficos.",
+    icon: "Globe",
+    group: "analise",
+    section: "Os números do período",
+    minRole: "manager",
     sidebar: true,
   },
   {
@@ -843,7 +871,8 @@ export const NAV_CATALOG = [
     icon: "ClockCounterClockwise",
     group: "analise",
     section: "Os números do período",
-    sidebar: true,
+    // Fork Converzon: sai do menu lateral (continua em "Ver tudo em Análise")
+    // para "Métricas do site" caber no teto de 15 itens da dobra a 1280x900.
   },
   {
     // Observabilidade, não configuração: por isso não fica junto dos agentes.

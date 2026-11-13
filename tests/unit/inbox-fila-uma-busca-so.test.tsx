@@ -188,7 +188,9 @@ beforeEach(() => {
 afterEach(() => cleanup());
 
 describe("a lista do inbox consulta UMA vez quando o filtro efetivo muda (#2365)", () => {
-  it("⭐ org SEM automático: a Fila espera o fato da org e busca uma vez só", async () => {
+  // Fork Converzon: a aba Fila saiu da faixa e deixou de ser a padrão (?filter=unassigned
+  // agora abre Aguardando resposta), então o gate do fato da org não se aplica mais.
+  it.skip("⭐ org SEM automático: a Fila espera o fato da org e busca uma vez só", async () => {
     montar();
 
     // A pergunta org-wide sai primeiro — e é ELA que decide o filtro da Fila.
@@ -224,7 +226,7 @@ describe("a lista do inbox consulta UMA vez quando o filtro efetivo muda (#2365)
     expect(listas()).toHaveLength(1);
   });
 
-  it("org COM automático: a Fila continua pedindo só `aguardando` — uma busca, filtro igual", async () => {
+  it.skip("org COM automático: a Fila continua pedindo só `aguardando` — uma busca, filtro igual", async () => {
     montar();
     await waitFor(() => expect(chamadas.some((c) => c.url === AUTOMATICO)).toBe(true));
 

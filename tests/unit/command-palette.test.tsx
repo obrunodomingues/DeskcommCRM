@@ -114,7 +114,7 @@ describe("CommandPalette", () => {
 
   it("sem texto, oferece o trabalho do dia em vez de tela vazia", () => {
     abrir();
-    expect(screen.getByRole("option", { name: /Inbox/ })).toBeTruthy();
+    expect(screen.getByRole("option", { name: /^WhatsApp/ })).toBeTruthy();
   });
 
   it("diz quando não achou, em vez de sumir sem explicação", async () => {
@@ -132,7 +132,7 @@ describe("CommandPalette", () => {
     expect(btnAtendimento).toBeTruthy();
     await user.click(btnAtendimento);
     // Ao filtrar por Atendimento, itens de CRM ou Funcionários não devem aparecer
-    expect(screen.getByRole("option", { name: /Inbox/ })).toBeTruthy();
+    expect(screen.getByRole("option", { name: /^WhatsApp/ })).toBeTruthy();
     expect(screen.queryByRole("option", { name: /Contatos/ })).toBeNull();
   });
 
@@ -142,7 +142,8 @@ describe("CommandPalette", () => {
     // O catálogo começa por Prospecção (CRM): agrupar pela 1ª aparição punha
     // CRM no topo, e a seta andava pela lista plana, pulando de seção.
     const opcoes = screen.getAllByRole("option");
-    expect(opcoes[0]?.getAttribute("data-href")).toBe("/app/inbox");
+    // Fork Converzon: Início é o primeiro item de Atendimento (antes do WhatsApp).
+    expect(opcoes[0]?.getAttribute("data-href")).toBe("/app/inicio");
     await user.keyboard("{ArrowDown}{Enter}");
     expect(push).toHaveBeenCalledWith(opcoes[1]?.getAttribute("data-href"));
   });

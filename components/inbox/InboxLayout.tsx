@@ -39,6 +39,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { comandosDaFila } from "@/lib/inbox/comando-da-conversa";
+import { COMANDOS_SEM_A_IA } from "@/lib/inbox/abas-converzon";
 import { togglePainelDoContato } from "@/app/actions/inbox/togglePainelDoContato";
 import type { AvisoDeRascunho } from "@/lib/inbox/rascunho-sugerido";
 import { buscaValeConsulta } from "@/lib/inbox/termo-de-busca";
@@ -125,20 +126,47 @@ export function tabToFilter(
       // "Devolver ao automático"), então a aba vivia mostrando 2 enquanto o robô
       // atendia 47. Agora ela pergunta a régua do MOTOR.
       return { comando: ["automatico"] };
+    // Fork Converzon (lib/inbox/abas-converzon.ts). Grupo fica de fora das duas:
+    // conversa de grupo não é paciente esperando — ela segue em Todas e no chip
+    // "Grupos". A contagem (counts/route.ts) pede exatamente o mesmo predicado.
+    case "novas":
+      return { sem_resposta: true, exclude_finished: true, is_group: false };
+    case "aguardando_resposta":
+      // `comando` com `aguardando` faz `ehAFila` valer: a lista sai por tempo de
+      // espera (quem espera há mais tempo primeiro), como a antiga Fila.
+      return {
+        sem_resposta: true,
+        exclude_finished: true,
+        is_group: false,
+        comando: COMANDOS_SEM_A_IA,
+      };
     case "all":
     default:
       return {};
   }
 }
 
-const FILTER_TABS: InboxTab[] = ["unassigned", "mine", "all", "closed", "archived", "ai"];
+const FILTER_TABS: InboxTab[] = ["all", "novas", "aguardando_resposta", "closed", "archived"];
+
+/**
+ * Fork Converzon: as abas que saíram da faixa ainda podem chegar por link
+ * antigo (notificação, favorito). Cada uma cai na aba de hoje que responde a
+ * mesma pergunta, em vez de abrir uma aba invisível.
+ */
+const ABA_DE_HOJE: Partial<Record<string, InboxTab>> = {
+  unassigned: "aguardando_resposta",
+  mine: "all",
+  ai: "all",
+};
 
 /**
  * Lê ?filter= (G4-02, deep-link). ?filter=all é HONRADO mesmo para agent — a
- * lista volta RLS-scoped (a tab só some cosmeticamente); default: fila.
+ * lista volta RLS-scoped (a tab só some cosmeticamente); default: Todas (fork
+ * Converzon — no upstream é a Fila).
  */
 function parseFilterParam(v: string | null): InboxTab {
-  return v && FILTER_TABS.includes(v as InboxTab) ? (v as InboxTab) : "unassigned";
+  if (v && ABA_DE_HOJE[v]) return ABA_DE_HOJE[v]!;
+  return v && FILTER_TABS.includes(v as InboxTab) ? (v as InboxTab) : "all";
 }
 
 /**
@@ -326,7 +354,9 @@ export function InboxLayout({
       tag: filterValue.tag,
       tagMode: filterValue.tagMode,
       unread: filterValue.onlyUnread || undefined,
-      is_group: filterValue.onlyGroups || undefined,
+      // Fork Converzon: o chip "Grupos" vence; sem ele, vale o que a aba pede
+      // (Novas/Aguardando deixam grupo de fora).
+      is_group: filterValue.onlyGroups || tabToFilter(filterValue.tab, automaticoDaOrg).is_group,
     }),
     [
       filterValue.tab,

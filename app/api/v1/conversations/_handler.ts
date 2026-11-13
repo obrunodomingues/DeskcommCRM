@@ -233,6 +233,11 @@ export async function listConversationsHandler(
   if (q.exclude_finished) {
     query = query.not("status", "in", `(${CONVERSATION_TERMINAL_STATUSES.join(",")})`);
   }
+  // Fork Converzon: "Novas mensagens" e "Aguardando resposta" pedem só o que o
+  // cliente ainda espera — a última fala dele é mais nova que a última resposta.
+  // Campo calculado `converzon_sem_resposta` (converzon/sql/0001): `awaiting_since`
+  // sozinho não serve, ele nunca fica vazio depois de respondido.
+  if (q.sem_resposta) query = query.eq("converzon_sem_resposta", true);
   if (q.channel_session_id) query = query.eq("channel_session_id", q.channel_session_id);
   // Canal desativado nunca entra na inbox (quarentena): exclui as conversas
   // dele aqui e nos badges, mantendo o acesso direto por id para auditoria e

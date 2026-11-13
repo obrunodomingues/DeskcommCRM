@@ -572,6 +572,13 @@ const schema = z.object({
   GOOGLE_ADS_OAUTH_CLIENT_ID: z.string().optional().default(""),
   GOOGLE_ADS_OAUTH_CLIENT_SECRET: z.string().optional().default(""),
 
+  // Fork Converzon — "Métricas do site" (Google Analytics 4, lib/converzon/ga4.ts).
+  // Conta de serviço com papel "Leitor" na propriedade; o JSON da chave vai em
+  // base64 numa linha só. Credencial da INSTALAÇÃO (um site por instalação).
+  // Vazias = a tela diz que não está configurada, sem quebrar nada.
+  CONVERZON_GA4_PROPERTY_ID: z.string().optional().default(""),
+  CONVERZON_GA4_CREDENTIALS_B64: z.string().optional().default(""),
+
   // Nuvemshop — opcional (template genérico open-source). Só exigidas quando
   // NUVEMSHOP_ENABLED=true; o runtime já degrada via getConfig()==null.
   NUVEMSHOP_APP_ID: z.string().optional().default(""),

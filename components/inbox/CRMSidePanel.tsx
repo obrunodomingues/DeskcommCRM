@@ -3,6 +3,7 @@
 import { RoteirosDoContato } from "@/components/contacts/RoteirosDoContato";
 import { AcervoSearch } from "./AcervoSearch";
 import { LeadEnrichment } from "./LeadEnrichment";
+import { NotasInternasDoPainel } from "./NotasInternasDoPainel";
 import { AnuncioDoContato, type AnuncioDeOrigem, type AnuncioMaisRecente } from "./AnuncioDoContato";
 import type { ProspectEnrichment } from "@/lib/prospecting/schema";
 import { useAuth } from "@/hooks/auth/AuthProvider";
@@ -994,6 +995,9 @@ export function CRMSidePanel({ conversation, recolhido = false, onAlternarRecolh
           )}
         </Card>
       </section>
+
+      {/* Fork Converzon: as notas internas fixadas logo abaixo do contato. */}
+      <NotasInternasDoPainel conversationId={conversation.id} />
 
       {contactId && summaryContactId === contactId && !erro && (
         <AnuncioDoContato contactId={contactId} origem={anuncios.origem} recente={anuncios.recente} />

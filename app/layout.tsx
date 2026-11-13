@@ -27,6 +27,8 @@ import { ThemeProvider } from "@/lib/theme";
 import { Providers } from "./providers";
 import { PublicEnvScript } from "./public-env-script";
 import "./globals.css";
+// Fork Converzon: o visual do consultório, por cima do globals.css (ver o cabeçalho do arquivo).
+import "./converzon.css";
 
 // Fontes versionadas em app/fonts/ (origem e licença no README de lá): o
 // next/font/google as baixava durante o build, e o build caía quando o Google
@@ -47,6 +49,25 @@ const atkinson = localFont({
   ],
   display: "swap",
   variable: "--font-atkinson",
+  // Fork Converzon: `converzon.css` aponta `--font-atkinson` para a Inter, então
+  // esta fonte não é desenhada — sem pré-carga, o navegador nem a baixa.
+  preload: false,
+});
+
+// Fork Converzon: Inter, a fonte do painel antigo do cliente (variável 100–900, latin).
+const inter = localFont({
+  src: [{ path: "./fonts/inter-100-900-latin.woff2", weight: "100 900", style: "normal" }],
+  display: "swap",
+  variable: "--font-converzon",
+});
+
+// Fork Converzon: a serifa do site do cliente, só na saudação da tela Início
+// (`.cz-serifa`). Sem pré-carga: só é baixada por quem abre o Início.
+const cormorant = localFont({
+  src: [{ path: "./fonts/cormorant-garamond-600-latin.woff2", weight: "600", style: "normal" }],
+  display: "swap",
+  variable: "--font-converzon-serif",
+  preload: false,
 });
 
 const plexMono = localFont({
@@ -327,7 +348,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       lang="pt-BR"
       data-theme="light"
       suppressHydrationWarning
-      className={`${atkinson.variable} ${plexMono.variable}`}
+      className={`${atkinson.variable} ${plexMono.variable} ${inter.variable} ${cormorant.variable}`}
     >
       <head>
         {/* Primeiro de tudo: a cor da instalação, antes do CSS e do script de tema. */}
