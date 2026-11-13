@@ -4,7 +4,7 @@ import { idsDeContatosPessoais } from "@/app/api/v1/conversations/_handler";
 import { horariosLivresDaOrg } from "@/lib/agenda/consulta";
 import { ok } from "@/lib/api/wrappers";
 import { requireRole } from "@/lib/auth/require-role";
-import { ROLE_RANK, type Role } from "@/lib/auth/types";
+import { roleAtLeast } from "@/lib/auth/types";
 import { idsDosCanaisDesativados } from "@/lib/channels/desativado";
 import { rotuloDoContato } from "@/lib/contacts/rotulo-do-contato";
 import { painelDoSite } from "@/lib/converzon/ga4";
@@ -40,7 +40,8 @@ export async function GET(): Promise<Response> {
   const authz = await requireRole("viewer", { requestId, resource: "converzon_inicio" });
   if (!authz.ok) return authz.response;
   const orgId = authz.org.orgId;
-  const gerente = ROLE_RANK[authz.org.role as Role] >= ROLE_RANK.manager;
+  // Só decide se os números do SITE entram (o resto vale para qualquer papel).
+  const gerente = roleAtLeast(authz.org.role, "manager");
 
   const supabase = await createClient();
   const agora = new Date();
