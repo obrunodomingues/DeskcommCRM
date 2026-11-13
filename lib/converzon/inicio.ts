@@ -72,19 +72,6 @@ export function nomeDaSaudacao(nomeCompleto: string | null | undefined): string 
   return titulo && partes[1] ? `${primeira} ${partes[1]}` : primeira;
 }
 
-/** O nome que aparece para um contato, na mesma ordem de preferência do WhatsApp. */
-export function nomeDoContato(
-  c: { display_name?: string | null; name?: string | null; address_book_name?: string | null; phone_number?: string | null } | null | undefined,
-): string {
-  return (
-    c?.display_name?.trim() ||
-    c?.name?.trim() ||
-    c?.address_book_name?.trim() ||
-    c?.phone_number?.trim() ||
-    "Contato"
-  );
-}
-
 /** Duas letras para o avatar: as iniciais do primeiro e do último nome. */
 export function iniciais(nome: string): string {
   const partes = nome.trim().split(/\s+/).filter((p) => /\p{L}/u.test(p));

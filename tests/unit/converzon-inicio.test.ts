@@ -15,7 +15,6 @@ import {
   iniciais,
   larguraDaBarra,
   nomeDaSaudacao,
-  nomeDoContato,
   saudacao,
 } from "@/lib/converzon/inicio";
 import { NAV_CATALOG } from "@/lib/navigation/catalogo";
@@ -37,13 +36,6 @@ describe("Início — contas do resumo", () => {
     expect(nomeDaSaudacao("Ana Paula Souza")).toBe("Ana");
     expect(nomeDaSaudacao("  ")).toBe("");
     expect(nomeDaSaudacao(null)).toBe("");
-  });
-
-  it("nome do contato na ordem do WhatsApp, com reserva", () => {
-    expect(nomeDoContato({ display_name: "Ana", name: "Ana Paula" })).toBe("Ana");
-    expect(nomeDoContato({ display_name: " ", name: "Ana Paula" })).toBe("Ana Paula");
-    expect(nomeDoContato({ phone_number: "+5561999990000" })).toBe("+5561999990000");
-    expect(nomeDoContato(null)).toBe("Contato");
   });
 
   it("iniciais do primeiro e do último nome", () => {

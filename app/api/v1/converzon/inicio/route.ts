@@ -6,11 +6,11 @@ import { ok } from "@/lib/api/wrappers";
 import { requireRole } from "@/lib/auth/require-role";
 import { ROLE_RANK, type Role } from "@/lib/auth/types";
 import { idsDosCanaisDesativados } from "@/lib/channels/desativado";
+import { rotuloDoContato } from "@/lib/contacts/rotulo-do-contato";
 import { painelDoSite } from "@/lib/converzon/ga4";
 import {
   contarPorEtapa,
   escolherFunil,
-  nomeDoContato,
   type MensagemNova,
   type ProximaConsulta,
   type ResumoDoInicio,
@@ -31,7 +31,7 @@ export const dynamic = "force-dynamic";
 
 const DIA_MS = 24 * 60 * 60 * 1000;
 
-type Contato = { display_name?: string | null; name?: string | null; address_book_name?: string | null; phone_number?: string | null };
+type Contato = { display_name?: string | null; name?: string | null; phone_number?: string | null };
 /** O PostgREST devolve o embutido como objeto ou lista, conforme a relação. */
 const um = <T,>(v: T | T[] | null | undefined): T | null => (Array.isArray(v) ? (v[0] ?? null) : (v ?? null));
 
@@ -72,7 +72,7 @@ export async function GET(): Promise<Response> {
       supabase
         .from("conversations")
         .select(
-          "id, last_inbound_at, last_message_preview, comando_da_conversa, contacts:contact_id (display_name, name, address_book_name, phone_number)",
+          "id, last_inbound_at, last_message_preview, comando_da_conversa, contacts:contact_id (display_name, name, phone_number)",
         )
         .eq("organization_id", orgId)
         .eq("converzon_sem_resposta", true)
@@ -111,7 +111,7 @@ export async function GET(): Promise<Response> {
     supabase
       .from("calendar_appointments")
       .select(
-        "id, starts_at, title, location_kind, contacts:contact_id (display_name, name, address_book_name, phone_number), calendar_event_types:event_type_id (name)",
+        "id, starts_at, title, location_kind, contacts:contact_id (display_name, name, phone_number), calendar_event_types:event_type_id (name)",
       )
       .eq("organization_id", orgId)
       .neq("status", "cancelled")
@@ -135,7 +135,7 @@ export async function GET(): Promise<Response> {
   }[];
   const mensagens: MensagemNova[] = linhas.map((c) => ({
     conversaId: c.id,
-    nome: nomeDoContato(um(c.contacts)),
+    nome: rotuloDoContato(um(c.contacts)),
     previa: c.last_message_preview,
     recebidaEm: c.last_inbound_at ?? agora.toISOString(),
     comando: c.comando_da_conversa,
@@ -157,7 +157,7 @@ export async function GET(): Promise<Response> {
     return {
       id: a.id,
       inicio: a.starts_at,
-      nome: contato ? nomeDoContato(contato) : a.title?.trim() || "Consulta",
+      nome: contato ? rotuloDoContato(contato) : a.title?.trim() || "Consulta",
       tipo: um(a.calendar_event_types)?.name ?? null,
       teleconsulta: a.location_kind === "google_meet" || a.location_kind === "video",
     };
