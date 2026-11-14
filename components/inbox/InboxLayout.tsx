@@ -140,13 +140,17 @@ export function tabToFilter(
         is_group: false,
         comando: COMANDOS_SEM_A_IA,
       };
+    case "clientes":
+      // Só a etiqueta do contato: sem status nem resposta, a conversa de cliente
+      // nunca sai daqui (fechada e arquivada inclusive). Mesmo predicado na contagem.
+      return { cliente: true };
     case "all":
     default:
       return {};
   }
 }
 
-const FILTER_TABS: InboxTab[] = ["all", "novas", "aguardando_resposta", "closed", "archived"];
+const FILTER_TABS: InboxTab[] = ["all", "novas", "aguardando_resposta", "clientes", "closed", "archived"];
 
 /**
  * Fork Converzon: as abas que saíram da faixa ainda podem chegar por link

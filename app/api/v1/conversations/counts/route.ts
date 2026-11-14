@@ -18,7 +18,7 @@ import { traduzir } from "@/lib/i18n/dicionario";
 import { CONVERSATION_TERMINAL_STATUSES } from "@/lib/schemas";
 import { orgTemAutomatico } from "@/lib/ai/agents/org-tem-automatico";
 import { comandosDaFila } from "@/lib/inbox/comando-da-conversa";
-import { COMANDOS_SEM_A_IA } from "@/lib/inbox/abas-converzon";
+import { COMANDOS_SEM_A_IA, ETIQUETA_DE_CLIENTE } from "@/lib/inbox/abas-converzon";
 import { aplicarMarcadores, modoDeEtiqueta } from "@/lib/inbox/marcador-da-conversa";
 import { createClient } from "@/lib/supabase/server";
 import { idsDeContatosPessoais } from "../_handler";
@@ -150,7 +150,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   // convenção da regra: assume que há automático.
   const automaticoDaOrg = await orgTemAutomatico(supabase, org);
 
-  const [fila, automatico, mine, all, closed, archived, novas, aguardandoResposta] = await Promise.all([
+  const [fila, automatico, mine, all, closed, archived, novas, aguardandoResposta, clientes] = await Promise.all([
     // A FILA DEIXOU DE SER "sem dono + status de espera".
     //
     // Aquele par contava como trabalho humano pendente tudo que o robô estava
@@ -201,6 +201,9 @@ export async function GET(req: NextRequest): Promise<Response> {
       .eq("is_group", false)
       .not("status", "in", `(${CONVERSATION_TERMINAL_STATUSES.join(",")})`)
       .in("comando_da_conversa", COMANDOS_SEM_A_IA),
+    // Fork Converzon — a aba "Clientes": só a etiqueta do contato, sem status,
+    // o mesmo predicado que `tabToFilter("clientes")` pede à lista.
+    countExact().contains("tags_do_contato", [ETIQUETA_DE_CLIENTE]),
   ]);
 
   const firstErr =
@@ -211,7 +214,8 @@ export async function GET(req: NextRequest): Promise<Response> {
     closed.error ??
     archived.error ??
     novas.error ??
-    aguardandoResposta.error;
+    aguardandoResposta.error ??
+    clientes.error;
   if (firstErr) {
     return fail("internal_error", firstErr.message, 500, { requestId });
   }
@@ -231,6 +235,7 @@ export async function GET(req: NextRequest): Promise<Response> {
       archived: archived.count ?? 0,
       novas: novas.count ?? 0,
       aguardando_resposta: aguardandoResposta.count ?? 0,
+      clientes: clientes.count ?? 0,
     },
     { requestId },
   );

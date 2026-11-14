@@ -94,6 +94,11 @@ export interface ConversationsFilters {
    * (abas "Novas mensagens" e "Aguardando resposta").
    */
   sem_resposta?: boolean;
+  /**
+   * Fork Converzon: só as conversas cujo contato tem a etiqueta `cliente`
+   * (aba "Clientes", lib/inbox/abas-converzon.ts).
+   */
+  cliente?: boolean;
   assigned_to?: "me" | "unassigned" | string;
   /**
    * QUEM MANDA na conversa — o filtro que as abas Fila e Automático passaram a
@@ -185,6 +190,7 @@ export function useConversationsRealtime(
       }
       if (filters.exclude_finished) qs.set("exclude_finished", "true");
       if (filters.sem_resposta) qs.set("sem_resposta", "true");
+      if (filters.cliente) qs.set("cliente", "true");
       if (filters.assigned_to) qs.set("assigned_to", filters.assigned_to);
       if (filters.search) qs.set("search", filters.search);
       if (filters.unread) qs.set("unread", "true");

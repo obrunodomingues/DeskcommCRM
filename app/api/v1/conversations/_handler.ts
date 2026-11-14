@@ -20,6 +20,7 @@ import type { Conversation } from "@/lib/types/messaging";
 import { normalizarTermoDeBusca } from "@/lib/inbox/termo-de-busca";
 import { ORDEM_DA_ESPERA, ehAFila } from "@/lib/inbox/comando-da-conversa";
 import { aplicarMarcadores } from "@/lib/inbox/marcador-da-conversa";
+import { ETIQUETA_DE_CLIENTE } from "@/lib/inbox/abas-converzon";
 
 /**
  * Prepara o termo digitado para viajar dentro de um `or=` do PostgREST.
@@ -238,6 +239,10 @@ export async function listConversationsHandler(
   // Campo calculado `converzon_sem_resposta` (converzon/sql/0001): `awaiting_since`
   // sozinho não serve, ele nunca fica vazio depois de respondido.
   if (q.sem_resposta) query = query.eq("converzon_sem_resposta", true);
+  // Fork Converzon: aba "Clientes" — a etiqueta do CONTATO, lida pelo campo
+  // calculado `tags_do_contato` (migration 0323). Sem filtro de status: a conversa
+  // de cliente nunca sai da aba.
+  if (q.cliente) query = query.contains("tags_do_contato", [ETIQUETA_DE_CLIENTE]);
   if (q.channel_session_id) query = query.eq("channel_session_id", q.channel_session_id);
   // Canal desativado nunca entra na inbox (quarentena): exclui as conversas
   // dele aqui e nos badges, mantendo o acesso direto por id para auditoria e

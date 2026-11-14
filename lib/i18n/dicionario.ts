@@ -1525,6 +1525,22 @@ export const DICIONARIO: Traducoes = {
   // Fork Converzon — aba do inbox (lib/inbox/abas-converzon.ts). "Aguardando
   // resposta", a outra aba nova, já existia mais abaixo.
   "Novas mensagens": { es: "Mensajes nuevos" },
+  // Fork Converzon — a marca de cliente (components/inbox/MarcarComoCliente.tsx e
+  // app/api/v1/converzon/clientes/[id]). "Clientes", o nome da aba, já existia.
+  "Marcar como cliente": { es: "Marcar como cliente" },
+  "Desmarcar cliente": { es: "Desmarcar cliente" },
+  Desmarcar: { es: "Desmarcar" },
+  "Marcar este contato como cliente?": { es: "¿Marcar este contacto como cliente?" },
+  "Desmarcar este cliente?": { es: "¿Desmarcar este cliente?" },
+  "As conversas dele vão para a aba Clientes e ficam lá, mesmo depois de fechadas. A IA para de responder este contato: daqui em diante, só a equipe atende.": {
+    es: "Sus conversaciones van a la pestaña Clientes y se quedan allí, incluso después de cerradas. La IA deja de responder a este contacto: de aquí en adelante, solo atiende el equipo.",
+  },
+  "As conversas dele saem da aba Clientes. A IA continua fora das conversas que já estão com a equipe: para ela voltar a responder, use Devolver ao automático na conversa.": {
+    es: "Sus conversaciones salen de la pestaña Clientes. La IA sigue fuera de las conversaciones que ya están con el equipo: para que vuelva a responder, usa Devolver al automático en la conversación.",
+  },
+  "Contato marcado como cliente.": { es: "Contacto marcado como cliente." },
+  "Contato desmarcado como cliente.": { es: "Contacto desmarcado como cliente." },
+  "Não foi possível alterar a marca de cliente.": { es: "No fue posible cambiar la marca de cliente." },
   // Fork Converzon — menu ("WhatsApp" no lugar de "Inbox") e a tela "Métricas do
   // site" (app/app/metricas-do-site).
   WhatsApp: { es: "WhatsApp" },

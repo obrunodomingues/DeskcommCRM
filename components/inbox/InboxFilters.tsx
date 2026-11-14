@@ -46,7 +46,8 @@ export type InboxTab =
   | "ai"
   // Fork Converzon (lib/inbox/abas-converzon.ts): as abas do consultório.
   | "novas"
-  | "aguardando_resposta";
+  | "aguardando_resposta"
+  | "clientes";
 
 /** Fork Converzon: o "passado" fica numa segunda linha, discreta. */
 const ABAS_DISCRETAS: ReadonlySet<InboxTab> = new Set(["closed", "archived"]);
@@ -68,6 +69,7 @@ const INBOX_TABS: { value: InboxTab; label: string }[] = [
   { value: "all", label: "Todas" },
   { value: "novas", label: "Novas mensagens" },
   { value: "aguardando_resposta", label: "Aguardando resposta" },
+  { value: "clientes", label: "Clientes" },
   { value: "closed", label: "Fechadas" },
   // "Arquivadas" fica ao lado de "Fechadas" porque as duas são passado — e
   // separada dela porque são passados diferentes (#923): fechada é atendimento
@@ -258,6 +260,7 @@ export function InboxFilters({ value, onChange }: Props) {
     archived: counts?.archived,
     novas: counts?.novas,
     aguardando_resposta: counts?.aguardando_resposta,
+    clientes: counts?.clientes,
   };
   // Filtrar por um número que saiu da lista (o operador acabou de excluir o
   // canal) deixa o inbox mostrando um subconjunto — às vezes vazio — sem nada na

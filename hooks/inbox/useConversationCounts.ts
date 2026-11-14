@@ -27,6 +27,8 @@ export interface ConversationCounts {
   novas?: number;
   /** Fork Converzon — aba "Aguardando resposta". Opcional: cache antigo não tem. */
   aguardando_resposta?: number;
+  /** Fork Converzon — aba "Clientes". Opcional: cache antigo não tem. */
+  clientes?: number;
 }
 
 /** Os filtros auxiliares ligados na barra, que a contagem tem de aplicar junto. */

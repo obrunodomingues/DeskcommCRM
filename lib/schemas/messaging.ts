@@ -382,6 +382,11 @@ export const listConversationsQuerySchema = z.object({
    * coluna, e a conversa sai das duas abas.
    */
   sem_resposta: z.boolean().optional(),
+  /**
+   * Só as conversas cujo CONTATO tem a etiqueta `cliente`, em qualquer status.
+   * Base da aba "Clientes" do fork Converzon (lib/inbox/abas-converzon.ts).
+   */
+  cliente: z.boolean().optional(),
   assigned_to: z.union([z.string().uuid(), z.literal("me"), z.literal("unassigned")]).optional(),
   channel_session_id: z.string().uuid().optional(),
   /**

@@ -9,7 +9,8 @@ seguem nas imagens oficiais da mesma versão.
 
 | Mudança | Arquivos |
 |---|---|
-| Inbox com 3 abas: **Todas** (primeira e padrão), **Novas mensagens**, **Aguardando resposta**; Fechadas/Arquivadas numa linha discreta | `lib/inbox/abas-converzon.ts`, `components/inbox/InboxFilters.tsx`, `components/inbox/InboxLayout.tsx`, `app/api/v1/conversations/{_handler,route,counts/route}.ts`, `hooks/inbox/*` |
+| Inbox com 4 abas: **Todas** (primeira e padrão), **Novas mensagens**, **Aguardando resposta**, **Clientes**; Fechadas/Arquivadas numa linha discreta | `lib/inbox/abas-converzon.ts`, `components/inbox/InboxFilters.tsx`, `components/inbox/InboxLayout.tsx`, `app/api/v1/conversations/{_handler,route,counts/route}.ts`, `hooks/inbox/*` |
+| **Marcar como cliente** no card do contato: etiqueta `cliente` (a conversa entra na aba Clientes e não sai mais, em qualquer status) + "sempre atendimento humano" (a IA para de responder o contato). Desmarcar tira a etiqueta e a trava permanente, sem devolver a conversa ao automático. Sem SQL novo: a aba lê `tags_do_contato` (migration 0323) | `components/inbox/MarcarComoCliente.tsx`, `components/inbox/CRMSidePanel.tsx`, `app/api/v1/converzon/clientes/[id]/route.ts` |
 | Cor do balão por quem respondeu: CRM na cor da marca, celular azul, IA roxo. Digitada no CRM diz **CRM** (não "Você"/"Atendente"), também na citação | `components/inbox/MessageBubble.tsx`, `components/inbox/Composer.tsx` |
 | Notas internas fixadas no painel do contato | `components/inbox/NotasInternasDoPainel.tsx`, `components/inbox/CRMSidePanel.tsx` |
 | Funil: card mais recente no topo da coluna (chegada na coluna) | `lib/kanban/ordem-da-coluna.ts`, `components/kanban/KanbanBoard.tsx`, `hooks/kanban/useMoveCard.ts` |
