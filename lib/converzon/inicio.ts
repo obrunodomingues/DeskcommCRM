@@ -6,6 +6,7 @@
  * Cada número que falhar na leitura volta `null` e o cartão mostra "—": uma
  * consulta com problema não derruba a tela inteira.
  */
+import type { FormatoDoCompromisso } from "@/lib/converzon/perfil";
 
 /** O que `comando_da_conversa` diz sobre quem está com a conversa agora. */
 export type ComandoDaConversa = "automatico" | "aguardando" | "humano" | "encerrada" | string;
@@ -23,7 +24,8 @@ export interface ProximaConsulta {
   inicio: string;
   nome: string;
   tipo: string | null;
-  teleconsulta: boolean;
+  /** Presencial, vídeo ou ligação (lib/converzon/perfil.ts). */
+  formato: FormatoDoCompromisso;
 }
 
 export interface EtapaDoFunil {

@@ -15,6 +15,8 @@ import {
   type ProximaConsulta,
   type ResumoDoInicio,
 } from "@/lib/converzon/inicio";
+import { formatoDoCompromisso, lerPerfil } from "@/lib/converzon/perfil";
+import { env } from "@/lib/env";
 import { CONVERSATION_TERMINAL_STATUSES } from "@/lib/schemas";
 import { createClient } from "@/lib/supabase/server";
 
@@ -42,6 +44,7 @@ export async function GET(): Promise<Response> {
   const orgId = authz.org.orgId;
   // Só decide se os números do SITE entram (o resto vale para qualquer papel).
   const gerente = roleAtLeast(authz.org.role, "manager");
+  const compromissoSemNome = lerPerfil(env.CONVERZON_PERFIL) === "agencia" ? "Reunião" : "Consulta";
 
   const supabase = await createClient();
   const agora = new Date();
@@ -158,9 +161,10 @@ export async function GET(): Promise<Response> {
     return {
       id: a.id,
       inicio: a.starts_at,
-      nome: contato ? rotuloDoContato(contato) : a.title?.trim() || "Consulta",
+      // Sem contato e sem título: o nome genérico do compromisso no ramo da instalação.
+      nome: contato ? rotuloDoContato(contato) : a.title?.trim() || compromissoSemNome,
       tipo: um(a.calendar_event_types)?.name ?? null,
-      teleconsulta: a.location_kind === "google_meet" || a.location_kind === "video",
+      formato: formatoDoCompromisso(a.location_kind),
     };
   });
 

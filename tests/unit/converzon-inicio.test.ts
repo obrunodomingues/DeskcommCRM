@@ -17,8 +17,29 @@ import {
   nomeDaSaudacao,
   saudacao,
 } from "@/lib/converzon/inicio";
+import { formatoDoCompromisso, lerPerfil } from "@/lib/converzon/perfil";
 import { NAV_CATALOG } from "@/lib/navigation/catalogo";
 import { homeDaInterface } from "@/lib/navigation/interface";
+
+describe("Início — o ramo da instalação", () => {
+  it("só 'agencia' troca o vocabulário; vazio ou valor errado continua consultório", () => {
+    expect(lerPerfil("agencia")).toBe("agencia");
+    expect(lerPerfil(" Agencia ")).toBe("agencia");
+    expect(lerPerfil("")).toBe("consultorio");
+    expect(lerPerfil(undefined)).toBe("consultorio");
+    expect(lerPerfil("agência")).toBe("consultorio");
+    expect(lerPerfil("consultorio")).toBe("consultorio");
+  });
+
+  it("formato do compromisso pelos cinco location_kind da agenda", () => {
+    expect(formatoDoCompromisso("google_meet")).toBe("video");
+    expect(formatoDoCompromisso("video_link")).toBe("video");
+    expect(formatoDoCompromisso("phone")).toBe("ligacao");
+    expect(formatoDoCompromisso("whatsapp")).toBe("ligacao");
+    expect(formatoDoCompromisso("in_person")).toBe("presencial");
+    expect(formatoDoCompromisso(null)).toBe("presencial");
+  });
+});
 
 describe("Início — contas do resumo", () => {
   it("saudação pela hora do dia", () => {

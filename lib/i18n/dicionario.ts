@@ -1608,6 +1608,13 @@ export const DICIONARIO: Traducoes = {
   "Ver agenda": { es: "Ver agenda" },
   "Nenhuma consulta marcada daqui para frente.": { es: "Ninguna consulta agendada de aquí en adelante." },
   Teleconsulta: { es: "Teleconsulta" },
+  // Fork Converzon — o Início de uma instalação de agência (CONVERZON_PERFIL=agencia).
+  "Novos leads": { es: "Leads nuevos" },
+  "Reuniões marcadas": { es: "Reuniones agendadas" },
+  "Leads no funil": { es: "Leads en el embudo" },
+  "Próximas reuniões": { es: "Próximas reuniones" },
+  "Nenhuma reunião marcada daqui para frente.": { es: "Ninguna reunión agendada de aquí en adelante." },
+  "Por telefone": { es: "Por teléfono" },
   "Nenhuma conversa esperando resposta.": { es: "Ninguna conversación esperando respuesta." },
   "Abrir funil": { es: "Abrir embudo" },
   "Nenhum funil para mostrar.": { es: "Ningún embudo para mostrar." },

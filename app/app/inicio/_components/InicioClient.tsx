@@ -18,15 +18,29 @@ import {
   type ComandoDaConversa,
   type ResumoDoInicio,
 } from "@/lib/converzon/inicio";
+import type { PerfilDaInstalacao } from "@/lib/converzon/perfil";
 import { ArrowRight, CalendarCheck, Globe, Users, WhatsappLogo } from "@/lib/ui/icons";
 import { cn } from "@/lib/utils";
 
 /**
  * Fork Converzon — a tela "Início". Lê `/api/v1/converzon/inicio` a cada minuto.
  * Cada cartão leva à tela de onde o número vem.
+ *
+ * Os rótulos que dependem do ramo (`perfil`) ficam escritos por inteiro nos dois
+ * lados do `?`: chave do dicionário tem de ser texto literal, senão a varredura
+ * de tradução não a enxerga.
  */
-export function InicioClient({ nome, gerente }: { nome: string; gerente: boolean }) {
+export function InicioClient({
+  nome,
+  gerente,
+  perfil,
+}: {
+  nome: string;
+  gerente: boolean;
+  perfil: PerfilDaInstalacao;
+}) {
   const t = useT();
+  const agencia = perfil === "agencia";
   const idioma = useTagDeIdioma();
   const [agora, setAgora] = useState(() => Date.now());
   useEffect(() => {
@@ -125,7 +139,7 @@ export function InicioClient({ nome, gerente }: { nome: string; gerente: boolean
               ladrilho="cz-ladrilho"
               icone={<Users size={20} />}
               etiqueta={t("7 dias")}
-              titulo={t("Novos pacientes")}
+              titulo={agencia ? t("Novos leads") : t("Novos pacientes")}
               valor={numero(r.pacientes.novos7Dias)}
               detalhe={
                 typeof r.pacientes.doFormulario7Dias === "number"
@@ -138,7 +152,7 @@ export function InicioClient({ nome, gerente }: { nome: string; gerente: boolean
               ladrilho="cz-ladrilho-ambar"
               icone={<CalendarCheck size={20} />}
               etiqueta={t("7 dias")}
-              titulo={t("Consultas marcadas")}
+              titulo={agencia ? t("Reuniões marcadas") : t("Consultas marcadas")}
               valor={numero(r.consultas.proximos7Dias)}
               detalhe={
                 r.consultas.proximaVaga
@@ -165,7 +179,7 @@ export function InicioClient({ nome, gerente }: { nome: string; gerente: boolean
                 ladrilho="cz-ladrilho-roxo"
                 icone={<Users size={20} />}
                 etiqueta={t("agora")}
-                titulo={t("Pacientes no funil")}
+                titulo={agencia ? t("Leads no funil") : t("Pacientes no funil")}
                 valor={numero(r.funil.abertos)}
                 detalhe={r.funil.nome}
               />
@@ -173,9 +187,13 @@ export function InicioClient({ nome, gerente }: { nome: string; gerente: boolean
           </section>
 
           <section className="grid gap-4 lg:grid-cols-2">
-            <Bloco titulo={t("Próximas consultas")} href="/app/agenda" acao={t("Ver agenda")}>
+            <Bloco titulo={agencia ? t("Próximas reuniões") : t("Próximas consultas")} href="/app/agenda" acao={t("Ver agenda")}>
               {r.consultas.lista.length === 0 ? (
-                <Vazio texto={t("Nenhuma consulta marcada daqui para frente.")} />
+                <Vazio
+                  texto={
+                    agencia ? t("Nenhuma reunião marcada daqui para frente.") : t("Nenhuma consulta marcada daqui para frente.")
+                  }
+                />
               ) : (
                 <ul className="flex flex-col gap-1">
                   {r.consultas.lista.map((c) => (
@@ -189,8 +207,16 @@ export function InicioClient({ nome, gerente }: { nome: string; gerente: boolean
                           <span className="block truncate text-sm font-semibold">{c.nome}</span>
                           {c.tipo ? <span className="block truncate text-sm text-text-muted">{c.tipo}</span> : null}
                         </span>
-                        <span className={cn("cz-chip", c.teleconsulta ? "cz-chip-nova" : "cz-chip-equipe")}>
-                          {c.teleconsulta ? t("Teleconsulta") : t("Presencial")}
+                        <span className={cn("cz-chip", c.formato === "presencial" ? "cz-chip-equipe" : "cz-chip-nova")}>
+                          {c.formato === "video"
+                            ? agencia
+                              ? t("Videochamada")
+                              : t("Teleconsulta")
+                            : c.formato === "ligacao"
+                              ? agencia
+                                ? t("Ligação")
+                                : t("Por telefone")
+                              : t("Presencial")}
                         </span>
                         <span className="w-12 shrink-0 text-right text-sm font-semibold tabular-nums" suppressHydrationWarning>{hora(c.inicio)}</span>
                       </Link>
