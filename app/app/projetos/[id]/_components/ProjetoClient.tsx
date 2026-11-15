@@ -23,6 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/auth/AuthProvider";
+import { useTagDeIdioma } from "@/hooks/i18n/useLocaleDeData";
 import { useT } from "@/hooks/i18n/useT";
 import { apiClient } from "@/lib/api/client";
 import { roleAtLeast } from "@/lib/auth/types";
@@ -51,6 +52,7 @@ function dataBr(iso: string): string {
  */
 export function ProjetoClient({ id }: { id: string }) {
   const t = useT();
+  const tagDoIdioma = useTagDeIdioma();
   const router = useRouter();
   const qc = useQueryClient();
   const { activeOrg } = useAuth();
@@ -277,7 +279,7 @@ export function ProjetoClient({ id }: { id: string }) {
               {p.eventos.map((e) => (
                 <li key={e.id} className="flex gap-3 text-sm">
                   <span className="w-28 shrink-0 tabular-nums text-text-subtle" suppressHydrationWarning>
-                    {new Intl.DateTimeFormat("pt-BR", {
+                    {new Intl.DateTimeFormat(tagDoIdioma, {
                       day: "2-digit",
                       month: "2-digit",
                       hour: "2-digit",

@@ -48,7 +48,7 @@ export async function PATCH(req: NextRequest, ctx: Context): Promise<Response> {
   const requestId = randomUUID();
   if (!instalacaoDeAgencia()) return fail("not_found", "Not found.", 404, { requestId });
   const p = await preparar(ctx, requestId);
-  if ("erro" in p) return p.erro;
+  if (p.erro) return p.erro;
   const { authz, t, id, itemId } = p;
 
   let json: unknown;
@@ -114,7 +114,7 @@ export async function DELETE(_req: NextRequest, ctx: Context): Promise<Response>
   const requestId = randomUUID();
   if (!instalacaoDeAgencia()) return fail("not_found", "Not found.", 404, { requestId });
   const p = await preparar(ctx, requestId);
-  if ("erro" in p) return p.erro;
+  if (p.erro) return p.erro;
   const { authz, t, id, itemId } = p;
 
   const supabase = await createClient();

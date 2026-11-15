@@ -128,7 +128,10 @@ describe("sidebarGroups", () => {
     expect(crm?.items.map((i) => i.href)).toEqual([
       "/app/kanban",
       "/app/contacts",
-      "/app/tasks",
+      // Fork Converzon: Projetos ocupa o lugar de Tarefas (que segue no hub e
+      // no ⌘K). Sem capacidades informadas o filtro mostra tudo; numa
+      // instalação que não é agência a porta some (capacidade converzon_agencia).
+      "/app/projetos",
       // "/app/calls" (telefonia por SIP) NÃO entra aqui, e a ausência é a
       // decisão: o módulo é OPCIONAL e nasce desligado (doc 27), então a porta
       // no sidebar custaria um item a TODA instalação — e o vigésimo item é o
@@ -181,6 +184,8 @@ describe("hubSections", () => {
       "/app/contacts",
       "/app/companies",
       "/app/people",
+      // Fork Converzon: a execução dos serviços vendidos, rotina do dia.
+      "/app/projetos",
       "/app/tasks",
       // #1752: os planos caem embaixo de Tarefas, NA MESMA seção — um plano é
       // rotina do dia, não preparação nem fechamento. `sidebar: false` deixa o
