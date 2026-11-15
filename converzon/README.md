@@ -19,6 +19,7 @@ seguem nas imagens oficiais da mesma versão.
 | **Visual do consultório**: Inter, fundo cinza-claro com cartões brancos, verde do cliente, letras maiores, botões em pílula, cartões que sobem com o mouse e **barra lateral no tema oposto** ao da página (`[data-lado-invertido]`) | `app/converzon.css`, `app/layout.tsx`, `app/globals.css` (só o `@custom-variant dark`), `components/shell/{Sidebar,MobileSidebar,NavHub}.tsx`, `components/ui/button.tsx`, `app/fonts/inter-100-900-latin.woff2` |
 | **Início**: o resumo do dia (saudação, esperando resposta, pacientes novos, consultas e próximo horário livre, visitas do site, funil por etapa). Primeiro item de Atendimento e tela que abre ao entrar; Meta Ads saiu do menu lateral (fica no hub de Análise) para o teto de 15 | `app/app/inicio/*`, `app/api/v1/converzon/inicio/route.ts`, `lib/converzon/inicio.ts`, `lib/navigation/{catalogo,interface,registry}.ts`, `app/fonts/cormorant-garamond-600-latin.woff2` |
 | **Ramo da instalação** (`CONVERZON_PERFIL`): o Início fala em leads e reuniões numa agência e em pacientes e consultas no consultório; o selo do compromisso mostra vídeo, ligação ou presencial pelo `location_kind` | `lib/converzon/perfil.ts`, `lib/env.ts`, `.env.example`, `app/app/inicio/*`, `app/api/v1/converzon/inicio/route.ts` |
+| **Projetos** (só com `CONVERZON_PERFIL=agencia`): a execução de cada serviço vendido. Quadro por situação com o resumo da semana (atrasados, vencendo, parados, esperando o cliente), e por dentro fases com avançar e voltar, checklist por fase com prazo por item, notas e histórico automático. Modelos de fases e checklist por tipo de serviço (site, estrutura completa, tráfego, IA, sistema). No menu lateral ocupa o lugar de Tarefas (que segue no hub) pela capacidade `converzon_agencia`, que o layout põe numa agência. SQL: `0002_converzon_projetos.sql` | `lib/converzon/{projetos,perfil-servidor}.ts`, `app/app/projetos/*`, `app/api/v1/converzon/projetos/*`, `lib/navigation/{catalogo,interface}.ts`, `lib/organizacao/capacidades.ts`, `app/app/layout.tsx` |
 
 ## Variáveis de ambiente do fork
 
@@ -47,6 +48,8 @@ subir a imagem**, senão as abas novas respondem erro:
 ```bash
 ssh vps-dr 'docker exec -i deskcommcrm-supabase-db-1 psql -U postgres -d postgres -v ON_ERROR_STOP=1' < converzon/sql/0001_converzon_sem_resposta.sql
 ```
+
+`0002_converzon_projetos.sql` (tabelas da tela Projetos) só é preciso numa instalação de agência: nas outras a tela e as rotas respondem 404 e nunca consultam essas tabelas.
 
 ## Publicar uma versão nova do fork
 

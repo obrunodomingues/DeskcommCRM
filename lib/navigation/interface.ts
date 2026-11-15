@@ -25,6 +25,9 @@ const SIMPLIFICADA: readonly NavDestinationId[] = [
   "/app/kanban",
   "/app/contacts",
   "/app/tasks",
+  // Fork Converzon: Projetos (só numa agência) é quem ocupa o menu lateral no
+  // lugar de Tarefas, que segue aqui como porta do hub.
+  "/app/projetos",
   "/app/connections",
 ];
 /** Portas pessoais e recuperação administrativa não são removíveis. Atualização

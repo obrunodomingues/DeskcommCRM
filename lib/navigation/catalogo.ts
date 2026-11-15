@@ -298,18 +298,34 @@ export const NAV_CATALOG = [
     modulo: "crm_b2b",
   },
   {
-    // Extraída do PR #418 (@clinicacentrodosorrisosc-code). Fica no CRM e no
-    // sidebar porque é tela de USO DIÁRIO — quem atende abre para ver o que
-    // vence hoje, do mesmo jeito que abre o Inbox. Sem `minRole`: `viewer` VÊ
-    // o que o time combinou (é informação de operação), e a criação é cobrada
-    // pela rota, com `requireRole("agent")`.
+    // Fork Converzon: a execução de cada serviço vendido (fases, checklist,
+    // notas e histórico), só numa instalação de agência — a capacidade
+    // `converzon_agencia` é posta pelo layout quando CONVERZON_PERFIL=agencia.
+    // Ocupa no menu lateral o lugar de Tarefas: o pedido foi juntar projetos e
+    // tarefas numa aba só, e o teto de 15 itens da dobra a 1280x900 não cabe
+    // os dois.
+    href: "/app/projetos",
+    label: "Projetos",
+    description: "A execução de cada serviço vendido, do briefing à entrega, com checklist e prazos.",
+    icon: "ClipboardText",
+    group: "crm",
+    section: "O dia a dia da venda",
+    capacidade: "converzon_agencia",
+    sidebar: true,
+  },
+  {
+    // Extraída do PR #418 (@clinicacentrodosorrisosc-code). Fica no CRM porque
+    // é tela de USO DIÁRIO — quem atende abre para ver o que vence hoje. Sem
+    // `minRole`: `viewer` VÊ o que o time combinou (é informação de operação),
+    // e a criação é cobrada pela rota, com `requireRole("agent")`.
+    // Fork Converzon: fora do menu lateral (o lugar foi para Projetos);
+    // continua no hub do CRM e na busca.
     href: "/app/tasks",
     label: "Tarefas",
     description: "O que ficou combinado, com prazo — e o que já venceu sem ninguém fazer.",
     icon: "ListChecks",
     group: "crm",
     section: "O dia a dia da venda",
-    sidebar: true,
   },
   {
     // A porta dos planos de tarefa (#1752): montar a sequência UMA vez e o

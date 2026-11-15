@@ -18,6 +18,7 @@ import { env } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { modulosLigados } from "@/lib/instalacao/modulos";
 import { capacidadesLigadas } from "@/lib/organizacao/capacidades";
+import { instalacaoDeAgencia } from "@/lib/converzon/perfil-servidor";
 import { ehOperante } from "@/lib/organizacao/operante";
 import {
   ImpersonateBanner,
@@ -143,7 +144,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       cliente_pela_agenda: clientePelaAgendaLigado(orgRow?.settings),
       modulos_ligados: modulos,
       // Mesma linha de `settings` já lida acima — nenhuma consulta a mais.
-      capacidades_ligadas: capacidadesLigadas(orgRow?.settings, modulos),
+      // Fork Converzon: numa instalação de agência entra `converzon_agencia`,
+      // que é o que põe a tela Projetos no menu (lib/organizacao/capacidades.ts).
+      capacidades_ligadas: [
+        ...capacidadesLigadas(orgRow?.settings, modulos),
+        ...(instalacaoDeAgencia() ? (["converzon_agencia"] as const) : []),
+      ],
     };
 
     // A faixa do teste grátis (spec da cobrança §9): uma consulta a mais SÓ com
