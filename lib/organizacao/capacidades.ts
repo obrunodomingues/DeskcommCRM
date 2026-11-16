@@ -25,8 +25,10 @@ type CapacidadeDoCatalogo = (typeof CAPACIDADES_DA_ORGANIZACAO)[number];
  * de `/app` acrescenta às capacidades ligadas para o menu mostrar as telas de
  * agência (Projetos). Fica FORA de `CAPACIDADES_DA_ORGANIZACAO` de propósito:
  * aquela lista é o catálogo de recursos opcionais que a empresa liga e desliga.
+ * `converzon_consultorio` é o ramo oposto (sem `CONVERZON_PERFIL`): enxuga o
+ * cabeçalho da conversa para quem atende sozinho.
  */
-export type CapacidadeDoFork = "converzon_agencia";
+export type CapacidadeDoFork = "converzon_agencia" | "converzon_consultorio";
 export type CapacidadeDaOrganizacao = CapacidadeDoCatalogo | CapacidadeDoFork;
 
 /**

@@ -1744,6 +1744,7 @@ export const DICIONARIO: Traducoes = {
   Lembrar: { es: "Recordar" },
   Fechar: { es: "Cerrar" },
   "Devolver ao automático": { es: "Devolver al automático" },
+  "Devolver para IA": { es: "Devolver a la IA" },
 
   // ─── Inbox: lote por seleção múltipla (#2484, fatia F1) ───
   "Ações em lote": { es: "Acciones en lote" },

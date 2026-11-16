@@ -121,6 +121,9 @@ export function ConversationHeader({
   const phone = c?.phone_number ? phoneForDisplay(c.phone_number) : null;
   const status = conversation.status;
   const isMineAssigned = conversation.assigned_to_user_id === user.id;
+  // Fork Converzon: no consultório (quem atende sozinho) saem Liberar, Transferir
+  // e Lembrar, e a volta se chama "Devolver para IA".
+  const consultorio = !!activeOrg?.capacidades_ligadas?.includes("converzon_consultorio");
   const isOpen = status === "open" || conversation.assigned_to_user_id == null;
 
   // Marcar/desmarcar pessoal (spec 21, etapa 15 — botão no cabeçalho).
@@ -382,7 +385,7 @@ export function ConversationHeader({
             {t("Assumir")}
           </Button>
         )}
-        {isMineAssigned && (
+        {isMineAssigned && !consultorio && (
           <Button
             size="sm"
             variant="outline"
@@ -438,7 +441,7 @@ export function ConversationHeader({
             }
             onClick={() => retomar.mutate({ conversation_id: conversation.id })}
           >
-            {retomar.isPending ? t("Devolvendo...") : t("Devolver ao automático")}
+            {retomar.isPending ? t("Devolvendo...") : consultorio ? t("Devolver para IA") : t("Devolver ao automático")}
           </Button>
         )}
         {podePausar && (
@@ -456,7 +459,7 @@ export function ConversationHeader({
             {pausar.isPending ? t("Pausando...") : t("Pausar o automático")}
           </Button>
         )}
-        {!encerrada && (
+        {!encerrada && !consultorio && (
           <Button
             size="sm"
             variant="outline"
@@ -471,7 +474,7 @@ export function ConversationHeader({
             {t("Transferir")}
           </Button>
         )}
-        {!encerrada && (
+        {!encerrada && !consultorio && (
           <SnoozeButton
             conversationId={conversation.id}
             snoozeUntil={conversation.snooze_until ?? null}

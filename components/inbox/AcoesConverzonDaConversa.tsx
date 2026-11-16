@@ -17,17 +17,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/auth/AuthProvider";
 import { useT } from "@/hooks/i18n/useT";
 import { apiClient } from "@/lib/api/client";
 import { roleAtLeast } from "@/lib/auth/types";
-import { Checks, DotsThree, Trash } from "@/lib/ui/icons";
+import { Checks, Trash } from "@/lib/ui/icons";
 
 /**
  * Fork Converzon — duas ações a mais no cabeçalho da conversa.
@@ -35,8 +29,8 @@ import { Checks, DotsThree, Trash } from "@/lib/ui/icons";
  * - "Não precisa responder": o cliente falou por último, mas não espera nada
  *   (despedida longa, "vou pensar"...). Tira a conversa das abas "Sem resposta"
  *   e "Precisam de você" sem mandar nada a ninguém.
- * - "Apagar contato e conversas" (gerente para cima): some com golpista ou
- *   oferta comercial — contato, conversas, mensagens e cards do funil.
+ * - "Excluir contato" (gerente para cima), à vista e não num menu: some com
+ *   golpista ou oferta comercial — contato, conversas, mensagens e cards do funil.
  */
 export function AcoesConverzonDaConversa({
   conversationId,
@@ -99,19 +93,17 @@ export function AcoesConverzonDaConversa({
         </Button>
       )}
       {podeApagar && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button size="icon" variant="ghost" aria-label={t("Mais ações")} title={t("Mais ações")}>
-              <DotsThree weight="bold" aria-hidden />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem className="text-error focus:text-error" onSelect={() => setConfirmarApagar(true)}>
-              <Trash aria-hidden />
-              {t("Apagar contato e conversas")}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button
+          size="sm"
+          variant="outline"
+          className="text-error hover:text-error"
+          disabled={apagar.isPending}
+          title={t("Apagar contato e conversas")}
+          onClick={() => setConfirmarApagar(true)}
+        >
+          <Trash aria-hidden />
+          {t("Excluir contato")}
+        </Button>
       )}
       <AlertDialog open={confirmarApagar} onOpenChange={setConfirmarApagar}>
         <AlertDialogContent>

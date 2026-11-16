@@ -148,7 +148,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       // que é o que põe a tela Projetos no menu (lib/organizacao/capacidades.ts).
       capacidades_ligadas: [
         ...capacidadesLigadas(orgRow?.settings, modulos),
-        ...(instalacaoDeAgencia() ? (["converzon_agencia"] as const) : []),
+        ...(instalacaoDeAgencia() ? (["converzon_agencia"] as const) : (["converzon_consultorio"] as const)),
       ],
     };
 
