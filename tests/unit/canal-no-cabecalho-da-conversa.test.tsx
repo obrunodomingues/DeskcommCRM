@@ -44,6 +44,7 @@ import type { ConversationWithContact } from "@/hooks/inbox/useConversationsReal
 // ── O cabecalho e os hooks que ele puxa. Mesmo conjunto de
 // tests/unit/inbox-header-nao-trava.test.tsx: só o badge interessa aqui, e o
 // resto (discador, atribuição, arquivamento) pertence àquele arquivo.
+vi.mock("@/components/inbox/AcoesConverzonDaConversa", () => ({ AcoesConverzonDaConversa: () => null }));
 vi.mock("@/hooks/inbox/useClaimConversation", () => ({
   useClaimConversation: () => ({ mutate: vi.fn(), isPending: false }),
 }));
