@@ -44,9 +44,18 @@ import {
   type InboxFiltersValue,
 } from "@/components/inbox/InboxFilters";
 
+// Fork Converzon: a aba Clientes só aparece numa instalação de agência
+// (`converzon_agencia`). O padrão aqui é a agência; o caso do consultório troca.
+const capacidades: { atual: string[] } = { atual: ["converzon_agencia"] };
 vi.mock("@/hooks/auth/AuthProvider", () => ({
   useAuth: () => ({
-    activeOrg: { orgId: "org-1", name: "Org", role: "manager", visibility_mode: "all" },
+    activeOrg: {
+      orgId: "org-1",
+      name: "Org",
+      role: "manager",
+      visibility_mode: "all",
+      capacidades_ligadas: capacidades.atual,
+    },
   }),
 }));
 vi.mock("@/hooks/channels/useChannelSessions", () => ({
@@ -107,11 +116,23 @@ describe("faixa da Inbox — quebra em vez de esconder aba (#2745)", () => {
     // catraca de classe continua verde com a tela errada.
     const abas = screen.getAllByRole("tab");
     expect(abas).toHaveLength(6);
-    for (const rotulo of ["Todas", "Novas mensagens", "Aguardando resposta", "Clientes", "Fechadas", "Arquivadas"]) {
+    for (const rotulo of ["Todas", "Sem resposta", "Precisam de você", "Clientes", "Fechadas", "Arquivadas"]) {
       expect(
         screen.getByRole("tab", { name: new RegExp(rotulo) }),
         `a aba "${rotulo}" não está na faixa`,
       ).toBeInTheDocument();
+    }
+  });
+
+  it("no consultório (sem converzon_agencia) a aba Clientes some e as outras cinco ficam", () => {
+    capacidades.atual = [];
+    try {
+      render(<InboxFilters value={VALUE} onChange={() => {}} />);
+      expect(screen.getAllByRole("tab")).toHaveLength(5);
+      expect(screen.queryByRole("tab", { name: /Clientes/ })).not.toBeInTheDocument();
+      expect(screen.getByRole("tab", { name: /Precisam de você/ })).toBeInTheDocument();
+    } finally {
+      capacidades.atual = ["converzon_agencia"];
     }
   });
 
@@ -138,8 +159,8 @@ describe("faixa da Inbox — quebra em vez de esconder aba (#2745)", () => {
     ]);
     expect(screen.getAllByRole("tab").map((a) => a.textContent?.replace(/\s+/g, ""))).toEqual([
       "Todas130",
-      "Novasmensagens6",
-      "Aguardandoresposta2",
+      "Semresposta6",
+      "Precisamdevocê2",
       "Clientes4",
       "Fechadas25",
       "Arquivadas9",

@@ -64,6 +64,9 @@ export function MarcarComoCliente({
   });
 
   if (!roleAtLeast(activeOrg?.role, "manager")) return null;
+  // A aba Clientes é da agência (`converzon_agencia`); no consultório o botão
+  // levaria para uma aba que não aparece.
+  if (!activeOrg?.capacidades_ligadas?.includes("converzon_agencia")) return null;
 
   return (
     <>

@@ -67,8 +67,13 @@ const INBOX_TABS: { value: InboxTab; label: string }[] = [
   // (ver lib/inbox/abas-converzon.ts). Os filtros antigos continuam existindo em
   // `tabToFilter` e nas contagens — só não aparecem mais aqui.
   { value: "all", label: "Todas" },
-  { value: "novas", label: "Novas mensagens" },
-  { value: "aguardando_resposta", label: "Aguardando resposta" },
+  // Rótulos pedidos no consultório (16/11/2026): "Novas mensagens" e
+  // "Aguardando resposta" não diziam a diferença. Uma é tudo que está sem
+  // resposta; a outra, só o que a IA não vai responder.
+  { value: "novas", label: "Sem resposta" },
+  { value: "aguardando_resposta", label: "Precisam de você" },
+  // Só numa instalação de agência (capacidade `converzon_agencia`): o filtro
+  // mora em `InboxFilters`, junto da lista de abas visíveis.
   { value: "clientes", label: "Clientes" },
   { value: "closed", label: "Fechadas" },
   // "Arquivadas" fica ao lado de "Fechadas" porque as duas são passado — e
@@ -237,9 +242,11 @@ export function InboxFilters({ value, onChange }: Props) {
   const podeFiltrarPorAtendente = roleAtLeast(activeOrg?.role, "manager");
   const mostrarSeletorDeAtendente = podeFiltrarPorAtendente && value.tab !== "mine";
 
-  const tabs = activeOrg
-    ? visibleInboxTabs(activeOrg.role, activeOrg.visibility_mode)
-    : INBOX_TABS.map((t) => t.value);
+  // Fork Converzon: a aba Clientes é da agência; o consultório não a vê.
+  const agencia = !!activeOrg?.capacidades_ligadas?.includes("converzon_agencia");
+  const tabs = (
+    activeOrg ? visibleInboxTabs(activeOrg.role, activeOrg.visibility_mode) : INBOX_TABS.map((t) => t.value)
+  ).filter((tab) => tab !== "clientes" || agencia);
   const moveTab = (direction: -1 | 1) => {
     const next = tabs[tabs.indexOf(value.tab) + direction];
     if (next) onChange(comAba(value, next));

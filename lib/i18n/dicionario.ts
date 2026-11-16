@@ -1649,6 +1649,33 @@ export const DICIONARIO: Traducoes = {
   "Do site ao CRM": { es: "Del sitio al CRM" },
   "No mesmo período, do clique até o lead no funil.": { es: "En el mismo período, del clic al lead en el embudo." },
   "Visitas no site": { es: "Visitas en el sitio" },
+  // Fork Converzon — ajustes do consultório (16/11/2026): abas renomeadas,
+  // "Não precisa responder", "Apagar contato e conversas" e o sábado do agente.
+  // ("Sem resposta" já existia mais abaixo, com a mesma tradução.)
+  "Precisam de você": { es: "Te necesitan" },
+  "Não precisa responder": { es: "No hace falta responder" },
+  "Tira a conversa da aba Sem resposta sem mandar nada ao contato. Se ele escrever de novo, ela volta.": {
+    es: "Quita la conversación de la pestaña Sin respuesta sin enviar nada al contacto. Si vuelve a escribir, regresa.",
+  },
+  "Conversa tirada da aba Sem resposta.": { es: "Conversación quitada de la pestaña Sin respuesta." },
+  "Não foi possível tirar a conversa da aba.": { es: "No fue posible quitar la conversación de la pestaña." },
+  "Apagar contato e conversas": { es: "Borrar contacto y conversaciones" },
+  "Apagar {nome} do CRM?": { es: "¿Borrar a {nome} del CRM?" },
+  "Some o contato, todas as conversas e mensagens, os cards do funil e os compromissos passados ou cancelados. Não dá para desfazer. Se a pessoa escrever de novo, ela aparece como um contato novo.":
+    {
+      es: "Desaparecen el contacto, todas las conversaciones y mensajes, las tarjetas del embudo y las citas pasadas o canceladas. No se puede deshacer. Si la persona vuelve a escribir, aparece como un contacto nuevo.",
+    },
+  "Contato e conversas apagados.": { es: "Contacto y conversaciones borrados." },
+  "Este contato tem consulta marcada. Cancele a consulta na Agenda antes de apagar.": {
+    es: "Este contacto tiene una cita agendada. Cancela la cita en la Agenda antes de borrar.",
+  },
+  "Não consegui apagar: este contato ainda tem outros registros ligados a ele.": {
+    es: "No pude borrar: este contacto todavía tiene otros registros vinculados.",
+  },
+  "Não foi possível apagar o contato.": { es: "No fue posible borrar el contacto." },
+  "Horário diferente no sábado": { es: "Horario diferente el sábado" },
+  "Início no sábado": { es: "Inicio el sábado" },
+  "Fim no sábado": { es: "Fin el sábado" },
   // Fork Converzon — a tela "Início" (app/app/inicio).
   "O resumo do dia: mensagens esperando, próximas consultas, pacientes novos, funil e site.": {
     es: "El resumen del día: mensajes en espera, próximas consultas, pacientes nuevos, embudo y sitio.",

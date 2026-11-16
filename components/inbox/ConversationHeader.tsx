@@ -38,6 +38,7 @@ import { FaixaDaCarteira } from "@/components/inbox/FaixaDaCarteira";
 import { comandoDaConversa, ROTULO_DO_MOTIVO } from "@/lib/inbox/comando-da-conversa";
 import { ReassignDialog } from "@/components/inbox/ReassignDialog";
 import { SnoozeButton } from "@/components/inbox/SnoozeButton";
+import { AcoesConverzonDaConversa } from "@/components/inbox/AcoesConverzonDaConversa";
 import { DialButton } from "@/components/voice/DialButton";
 import { VideoCallButton } from "@/components/inbox/VideoCallButton";
 import { motivoDoContato } from "@/lib/inbox/motivo-do-envio-bloqueado";
@@ -476,6 +477,18 @@ export function ConversationHeader({
             snoozeUntil={conversation.snooze_until ?? null}
           />
         )}
+        {/* Fork Converzon: "Não precisa responder" e "Apagar contato e conversas". */}
+        <AcoesConverzonDaConversa
+          conversationId={conversation.id}
+          contactId={c?.id ?? null}
+          nomeDoContato={displayName}
+          clienteFalouPorUltimo={
+            !!conversation.last_inbound_at &&
+            (!conversation.last_outbound_at ||
+              Date.parse(conversation.last_inbound_at) > Date.parse(conversation.last_outbound_at))
+          }
+          encerrada={encerrada}
+        />
         {!encerrada && (
           <Button
             size="sm"

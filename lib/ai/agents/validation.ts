@@ -42,6 +42,12 @@ const triggerConfigSchema = z
             // campo ao salvar e o aviso nunca liga pela tela. O teto é o mesmo
             // de TAMANHO_MAXIMO_DO_TEXTO em aviso-fora-do-horario.ts.
             notice: z.string().max(1000).nullable().optional(),
+            // Fork Converzon: horário próprio por dia (chave "0"–"6"), ex.: o
+            // sábado mais curto. Sem esta linha o Zod descarta ao salvar.
+            por_dia: z
+              .record(z.string().regex(/^[0-6]$/), z.object({ start: z.string(), end: z.string() }))
+              .nullable()
+              .optional(),
           })
           .nullable()
           .optional()

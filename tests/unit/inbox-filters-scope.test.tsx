@@ -164,8 +164,8 @@ describe("InboxFilters render — 3 visões + escopo", () => {
   it("agent em modo own*: mostra Novas e Aguardando, esconde Todas", () => {
     setOrg("agent", "own_and_unassigned");
     render(<InboxFilters value={VALUE} onChange={() => {}} />);
-    expect(screen.getByRole("tab", { name: /Novas mensagens/ })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /Aguardando resposta/ })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Sem resposta/ })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Precisam de você/ })).toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: /Todas/ })).not.toBeInTheDocument();
   });
 
@@ -178,8 +178,8 @@ describe("InboxFilters render — 3 visões + escopo", () => {
   it("contagens por visão são renderizadas (Novas=4, Aguardando=1, Todas=5)", () => {
     setOrg("manager", "all");
     render(<InboxFilters value={VALUE} onChange={() => {}} />);
-    expect(screen.getByRole("tab", { name: /Novas mensagens/ })).toHaveTextContent("4");
-    expect(screen.getByRole("tab", { name: /Aguardando resposta/ })).toHaveTextContent("1");
+    expect(screen.getByRole("tab", { name: /Sem resposta/ })).toHaveTextContent("4");
+    expect(screen.getByRole("tab", { name: /Precisam de você/ })).toHaveTextContent("1");
     expect(screen.getByRole("tab", { name: /Todas/ })).toHaveTextContent("5");
   });
 });

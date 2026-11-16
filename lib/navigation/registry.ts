@@ -138,6 +138,9 @@ export function sidebarGroups(
       (d) =>
         d.group === group.id &&
         sobeAoMenuLateral(d, !!settings?.destinos) &&
+        // Fork Converzon: a porta que cede o lugar na barra para outra
+        // (Tarefas → Projetos, na agência). Ver `saiDoMenuCom` no catálogo.
+        !("saiDoMenuCom" in d && d.saiDoMenuCom && capacidades?.includes(d.saiDoMenuCom)) &&
         visible.has(d.href),
     ),
   })).filter(

@@ -32,6 +32,7 @@ import {
   type InterfaceSettings,
 } from "@/lib/navigation/interface";
 import { GRUPO_NO_RODAPE, sidebarGroups } from "@/lib/navigation/registry";
+import type { CapacidadeDaOrganizacao } from "@/lib/organizacao/capacidades";
 
 const completa = { preset: "completa" } as const;
 const simplificada = { preset: "simplificada" } as const;
@@ -43,8 +44,16 @@ const hrefs = (settings: unknown, role: "agent" | "admin" = "admin") =>
  * Os itens do MENU LATERAL — o mesmo recorte que o instrumento de tela mede:
  * só os grupos que aparecem na dobra, sem o grupo do rodapé.
  */
-const itensNoMenuLateral = (settings: unknown, role: "agent" | "admin" = "admin") =>
-  sidebarGroups(false, role, settings as InterfaceSettings | undefined)
+// Fork Converzon: mede com as capacidades de uma instalação de verdade (padrão:
+// consultório, sem `converzon_agencia`). Sem elas o filtro mostra tudo, e
+// Tarefas (consultório) e Projetos (agência) — que trocam de lugar na barra —
+// contariam juntas, coisa que nenhuma tela mostra.
+const itensNoMenuLateral = (
+  settings: unknown,
+  role: "agent" | "admin" = "admin",
+  capacidades: readonly CapacidadeDaOrganizacao[] = [],
+) =>
+  sidebarGroups(false, role, settings as InterfaceSettings | undefined, undefined, capacidades)
     .filter((grupo) => grupo.group.id !== GRUPO_NO_RODAPE)
     .reduce((total, grupo) => total + grupo.items.length, 0);
 
@@ -188,6 +197,8 @@ describe("medição da folga (pergunta de aceite da issue #1341)", () => {
     expect(itensNoMenuLateral(INTERFACE_COMPLETA)).toBe(15);
     // `undefined` é o caminho de quem não tem escolha nenhuma gravada
     expect(itensNoMenuLateral(undefined)).toBe(15);
+    // Fork Converzon: na agência Projetos entra e Tarefas sai — o total não muda.
+    expect(itensNoMenuLateral(INTERFACE_COMPLETA, "admin", ["converzon_agencia"])).toBe(15);
   });
 
   /**

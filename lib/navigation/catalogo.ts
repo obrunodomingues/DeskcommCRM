@@ -64,6 +64,12 @@ export interface NavMetadata {
    * ⌘K. Apresentação, como `modulo`: quem recusa é a tela e a rota.
    */
   capacidade?: CapacidadeDaOrganizacao;
+  /**
+   * Fork Converzon: com `sidebar: true`, a porta SAI do menu lateral quando a
+   * organização tem esta capacidade (continua no hub e na busca). É o caso de
+   * Tarefas: no consultório fica na barra; na agência o lugar é de Projetos.
+   */
+  saiDoMenuCom?: CapacidadeDaOrganizacao;
 }
 
 /**
@@ -318,14 +324,16 @@ export const NAV_CATALOG = [
     // é tela de USO DIÁRIO — quem atende abre para ver o que vence hoje. Sem
     // `minRole`: `viewer` VÊ o que o time combinou (é informação de operação),
     // e a criação é cobrada pela rota, com `requireRole("agent")`.
-    // Fork Converzon: fora do menu lateral (o lugar foi para Projetos);
-    // continua no hub do CRM e na busca.
+    // Fork Converzon: na AGÊNCIA sai do menu lateral (o lugar é de Projetos) e
+    // continua no hub do CRM e na busca; no consultório fica na barra.
     href: "/app/tasks",
     label: "Tarefas",
     description: "O que ficou combinado, com prazo — e o que já venceu sem ninguém fazer.",
     icon: "ListChecks",
     group: "crm",
     section: "O dia a dia da venda",
+    sidebar: true,
+    saiDoMenuCom: "converzon_agencia",
   },
   {
     // A porta dos planos de tarefa (#1752): montar a sequência UMA vez e o
