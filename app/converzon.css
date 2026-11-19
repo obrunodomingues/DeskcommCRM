@@ -434,6 +434,20 @@ button[data-conversation-id]:hover {
   transform: translateX(3px);
 }
 
+/* Funil: toda coluna tem a altura da mais comprida, para soltar card em
+   qualquer ponto de qualquer coluna. No produto o quadro é flex com
+   `items-start` e a coluna curta só vai até o fim da tela (`min-h-full`):
+   rolando a coluna comprida, as outras acabavam antes e a parte de baixo delas
+   não aceitava o card. Em grade, a linha tem no mínimo a altura do conteúdo
+   mais alto e, sobrando tela, ocupa a tela toda (`1fr`), como antes. */
+:root:root:root [data-quadro-do-funil] {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  grid-template-rows: minmax(max-content, 1fr);
+  align-items: stretch;
+}
+
 /* Quem pediu menos movimento no sistema não vê nada se mexer. */
 @media (prefers-reduced-motion: reduce) {
   .cz-ergue,

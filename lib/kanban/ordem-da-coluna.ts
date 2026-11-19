@@ -13,8 +13,10 @@
  * (linha antiga), vale `created_at`. Empate desempata pelo `id`, para a ordem não
  * pular entre duas leituras.
  *
- * Consequência aceita (decisão do cliente, 10/11/2026): arrastar para reordenar
- * DENTRO da mesma coluna deixa de valer — o board ignora esse arrasto.
+ * Decisão revista em 19/11/2026: só a PRIMEIRA coluna (Novo) sai por chegada.
+ * Nas outras o consultório arruma os cards à mão (ex.: "Avaliação agendada" na
+ * ordem das consultas), então elas voltam à ordem manual do upstream
+ * (`ordenarPorPosicao`), e o arrasto dentro delas volta a valer.
  */
 export interface LinhaComChegada {
   id: string;
@@ -32,4 +34,17 @@ export function ordenarPorChegada<T extends LinhaComChegada>(leads: readonly T[]
     const porData = chegadaNaColuna(b).localeCompare(chegadaNaColuna(a));
     return porData !== 0 ? porData : b.id.localeCompare(a.id);
   });
+}
+
+/**
+ * Ordem MANUAL, a do upstream: `position_in_stage` crescente, que é o que o
+ * arrasto grava. Empate desempata pelo `id`, para a ordem não pular entre duas
+ * leituras. Não altera a lista recebida.
+ */
+export function ordenarPorPosicao<T extends LinhaComChegada & { position_in_stage: number }>(
+  leads: readonly T[],
+): T[] {
+  return [...leads].sort(
+    (a, b) => Number(a.position_in_stage) - Number(b.position_in_stage) || a.id.localeCompare(b.id),
+  );
 }

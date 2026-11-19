@@ -132,7 +132,7 @@ export function sidebarGroups(
   const visible = new Set<string>(
     destinosDaInterface(settings, isPlatformAdmin, role, modulos, capacidades).map((d) => d.href),
   );
-  return NAV_GROUPS.map((group) => ({
+  const grupos = NAV_GROUPS.map((group) => ({
     group,
     items: NAV_DESTINATIONS.filter(
       (d) =>
@@ -148,6 +148,34 @@ export function sidebarGroups(
       g.items.length > 0 ||
       (g.group.hub && NAV_DESTINATIONS.some((d) => d.group === g.group.id && visible.has(d.href))),
   );
+  return capacidades?.includes("converzon_consultorio") ? ordemDoConsultorio(grupos) : grupos;
+}
+
+/**
+ * Fork Converzon: no consultório, o que o Dr. mais usa sobe para o primeiro
+ * grupo, no lugar de Respostas rápidas: Funil, Tarefas, Contatos e Métricas do
+ * site, nesta ordem. Respostas rápidas desce para depois deles e o resto fica
+ * onde está. Só reordena: nenhuma porta entra ou sai da barra.
+ */
+const SOBEM_NO_CONSULTORIO = ["/app/kanban", "/app/tasks", "/app/contacts", "/app/metricas-do-site"];
+
+function ordemDoConsultorio(
+  grupos: Array<{ group: NavGroup; items: NavDestination[] }>,
+): Array<{ group: NavGroup; items: NavDestination[] }> {
+  const primeiro = grupos.find((g) => g.group.id === "atendimento");
+  if (!primeiro) return grupos;
+  const todos = grupos.flatMap((g) => g.items);
+  const sobem = SOBEM_NO_CONSULTORIO.map((href) => todos.find((d) => d.href === href)).filter(
+    (d): d is NavDestination => !!d,
+  );
+  if (sobem.length === 0) return grupos;
+  return grupos.map((g) => {
+    const resto = g.items.filter((d) => !SOBEM_NO_CONSULTORIO.includes(d.href));
+    if (g !== primeiro) return { ...g, items: resto };
+    const respostas = resto.findIndex((d) => d.href === "/app/templates");
+    const corte = respostas < 0 ? resto.length : respostas;
+    return { ...g, items: [...resto.slice(0, corte), ...sobem, ...resto.slice(corte)] };
+  });
 }
 
 /**
