@@ -27,8 +27,11 @@ type CapacidadeDoCatalogo = (typeof CAPACIDADES_DA_ORGANIZACAO)[number];
  * aquela lista é o catálogo de recursos opcionais que a empresa liga e desliga.
  * `converzon_consultorio` é o ramo oposto (sem `CONVERZON_PERFIL`): enxuga o
  * cabeçalho da conversa para quem atende sozinho.
+ * `converzon_atende_sozinho` leva SÓ esse cabeçalho enxuto a uma agência em que
+ * uma pessoa atende tudo (`CONVERZON_ATENDE_SOZINHO=1`), sem o menu e o
+ * vocabulário do consultório.
  */
-export type CapacidadeDoFork = "converzon_agencia" | "converzon_consultorio";
+export type CapacidadeDoFork = "converzon_agencia" | "converzon_consultorio" | "converzon_atende_sozinho";
 export type CapacidadeDaOrganizacao = CapacidadeDoCatalogo | CapacidadeDoFork;
 
 /**

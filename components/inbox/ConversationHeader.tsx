@@ -121,9 +121,12 @@ export function ConversationHeader({
   const phone = c?.phone_number ? phoneForDisplay(c.phone_number) : null;
   const status = conversation.status;
   const isMineAssigned = conversation.assigned_to_user_id === user.id;
-  // Fork Converzon: no consultório (quem atende sozinho) saem Liberar, Transferir
-  // e Lembrar, e a volta se chama "Devolver para IA".
-  const consultorio = !!activeOrg?.capacidades_ligadas?.includes("converzon_consultorio");
+  // Fork Converzon: quem atende sozinho (o consultório, ou uma agência com
+  // CONVERZON_ATENDE_SOZINHO) não usa Liberar, Transferir nem Lembrar, e a volta
+  // se chama "Devolver para IA".
+  const consultorio =
+    !!activeOrg?.capacidades_ligadas?.includes("converzon_consultorio") ||
+    !!activeOrg?.capacidades_ligadas?.includes("converzon_atende_sozinho");
   const isOpen = status === "open" || conversation.assigned_to_user_id == null;
 
   // Marcar/desmarcar pessoal (spec 21, etapa 15 — botão no cabeçalho).

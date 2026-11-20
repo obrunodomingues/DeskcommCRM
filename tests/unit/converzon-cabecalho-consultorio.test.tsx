@@ -129,4 +129,13 @@ describe("cabeçalho da conversa no consultório (fork Converzon)", () => {
     expect(screen.getByTestId("botao-lembrar")).toBeTruthy();
     expect(screen.getByTestId("devolver-ao-automatico").textContent).toContain("Devolver ao automático");
   });
+
+  it("agência em que uma pessoa só atende: o mesmo cabeçalho enxuto do consultório", () => {
+    capacidades.atual = ["converzon_agencia", "converzon_atende_sozinho"];
+    render(<ConversationHeader conversation={conversaMinhaComAutomaticoCalado()} />);
+    expect(screen.queryByRole("button", { name: "Liberar" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Transferir" })).toBeNull();
+    expect(screen.queryByTestId("botao-lembrar")).toBeNull();
+    expect(screen.getByTestId("devolver-ao-automatico").textContent).toContain("Devolver para IA");
+  });
 });

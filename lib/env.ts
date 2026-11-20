@@ -583,6 +583,9 @@ const schema = z.object({
   // outro valor = consultório. Texto livre de propósito: valor errado não
   // derruba o boot, só cai no padrão.
   CONVERZON_PERFIL: z.string().optional().default(""),
+  // Fork Converzon — "1" numa agência em que uma pessoa só atende: o cabeçalho
+  // da conversa perde Liberar, Transferir e Lembrar, como no consultório.
+  CONVERZON_ATENDE_SOZINHO: z.string().optional().default(""),
 
   // Nuvemshop — opcional (template genérico open-source). Só exigidas quando
   // NUVEMSHOP_ENABLED=true; o runtime já degrada via getConfig()==null.

@@ -24,6 +24,7 @@ seguem nas imagens oficiais da mesma versão.
 `0003_converzon_despedida_e_apagar.sql` vale para TODA instalação do fork: troca a regra de "Sem resposta" (a imagem atual já se beneficia) e cria a função do botão "Apagar contato e conversas". Aplicar ANTES de subir a imagem que tem o botão — sem ele, apagar responde erro.
 | **Ajustes do consultório (16/11/2026)**: abas "Sem resposta" e "Precisam de você" (antes "Novas mensagens" e "Aguardando resposta"); "Sem resposta" ignora mensagem apagada, despedida curta ("obrigado", "valeu", só emoji) e o botão **Não precisa responder**; **Apagar contato e conversas** no cabeçalho da conversa (gerente para cima; contato, conversas, mensagens, cards do funil e compromissos passados; recusa com consulta futura); prévia da lista diz "Mensagem apagada"; horário do agente com faixa própria por dia (`por_dia`, a tela oferece o sábado); aba Clientes e "Marcar como cliente" só na agência; Tarefas na barra do consultório e fora da barra da agência (`saiDoMenuCom`). SQL: `0003_converzon_despedida_e_apagar.sql` | `converzon/sql/0003_*.sql`, `components/inbox/{AcoesConverzonDaConversa,ConversationHeader,InboxFilters,MarcarComoCliente}.tsx`, `app/api/v1/converzon/{conversas,contatos}/*`, `lib/agent-engine/agent/janela-de-atendimento.ts`, `lib/ai/agents/validation.ts`, `app/app/ai/agents/[id]/_components/TriggerEditor.tsx`, `lib/navigation/{catalogo,registry}.ts`, `lib/waha/ingest.ts` |
 | **Consultório (19/11/2026)**: com `converzon_consultorio` (posta pelo layout quando não há `CONVERZON_PERFIL`), o cabeçalho da conversa perde Liberar, Transferir e Lembrar, "Devolver ao automático" vira "Devolver para IA", e Funil, Tarefas, Contatos e Métricas do site sobem para o lugar de Respostas rápidas. No funil, só a primeira coluna (Novo) sai por chegada, as outras voltam à ordem manual, e toda coluna tem a altura da mais comprida (grade em `app/converzon.css`). O lembrete da agenda aceita `{{link}}` (link do Meet pronto) | `components/inbox/ConversationHeader.tsx`, `lib/navigation/registry.ts`, `components/kanban/KanbanBoard.tsx`, `lib/kanban/ordem-da-coluna.ts`, `app/api/v1/cron/agenda-reminder/route.ts`, `app/converzon.css` |
+| **Agência que atende sozinha (20/11/2026)**: com `CONVERZON_ATENDE_SOZINHO=1` numa agência, o layout acrescenta `converzon_atende_sozinho` e o cabeçalho da conversa fica igual ao do consultório (sem Liberar, Transferir e Lembrar; "Devolver para IA"). Menu e vocabulário continuam os da agência | `lib/converzon/perfil-servidor.ts`, `lib/env.ts`, `.env.example`, `lib/organizacao/capacidades.ts`, `app/app/layout.tsx`, `components/inbox/ConversationHeader.tsx` |
 
 ## Variáveis de ambiente do fork
 
@@ -35,6 +36,8 @@ No `.env` da VPS (o app lê o `.env` inteiro), documentadas em `.env.example`:
 - `CONVERZON_PERFIL` — o ramo da instalação. `agencia` põe a tela Início em
   leads e reuniões; vazio (ou qualquer outro valor) = consultório (pacientes e
   consultas). Valor errado não derruba o CRM: cai no padrão.
+- `CONVERZON_ATENDE_SOZINHO` — `1` numa agência em que uma pessoa só atende:
+  cabeçalho da conversa enxuto, como no consultório. Vazio = cabeçalho do produto.
 
 Vazias, a tela "Métricas do site" explica que falta configurar. O app só lê o
 `.env` ao ser recriado (`crm-versao.sh` faz isso).

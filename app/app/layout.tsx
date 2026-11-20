@@ -18,7 +18,7 @@ import { env } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { modulosLigados } from "@/lib/instalacao/modulos";
 import { capacidadesLigadas } from "@/lib/organizacao/capacidades";
-import { instalacaoDeAgencia } from "@/lib/converzon/perfil-servidor";
+import { agenciaAtendeSozinho, instalacaoDeAgencia } from "@/lib/converzon/perfil-servidor";
 import { ehOperante } from "@/lib/organizacao/operante";
 import {
   ImpersonateBanner,
@@ -145,10 +145,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       modulos_ligados: modulos,
       // Mesma linha de `settings` já lida acima — nenhuma consulta a mais.
       // Fork Converzon: numa instalação de agência entra `converzon_agencia`,
-      // que é o que põe a tela Projetos no menu (lib/organizacao/capacidades.ts).
+      // que é o que põe a tela Projetos no menu (lib/organizacao/capacidades.ts),
+      // e `converzon_atende_sozinho` quando uma pessoa só atende (CONVERZON_ATENDE_SOZINHO).
       capacidades_ligadas: [
         ...capacidadesLigadas(orgRow?.settings, modulos),
         ...(instalacaoDeAgencia() ? (["converzon_agencia"] as const) : (["converzon_consultorio"] as const)),
+        ...(instalacaoDeAgencia() && agenciaAtendeSozinho() ? (["converzon_atende_sozinho"] as const) : []),
       ],
     };
 

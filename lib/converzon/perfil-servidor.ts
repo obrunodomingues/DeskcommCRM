@@ -14,6 +14,15 @@ export function instalacaoDeAgencia(): boolean {
   return lerPerfil(env.CONVERZON_PERFIL) === "agencia";
 }
 
+/**
+ * FORK CONVERZON — uma agência em que uma pessoa só atende tudo
+ * (`CONVERZON_ATENDE_SOZINHO=1`)? Liga o cabeçalho enxuto da conversa, o mesmo do
+ * consultório, sem trocar o resto do ramo. Qualquer outro valor = desligado.
+ */
+export function agenciaAtendeSozinho(): boolean {
+  return ["1", "true", "sim"].includes(env.CONVERZON_ATENDE_SOZINHO.trim().toLowerCase());
+}
+
 /** "Hoje" como data de calendário (AAAA-MM-DD) no fuso de Brasília. */
 export function hojeEmBrasilia(agora: Date = new Date()): string {
   return new Intl.DateTimeFormat("en-CA", {
