@@ -38,8 +38,10 @@ vi.mock("@/lib/supabase/server", () => ({
       const reply = () => ({
         data: table === "conversations"
           ? { contact_id: "contact", channel: "whatsapp", is_group: false, status: "open",
-              channel_sessions: { provider: "waha" }, last_inbound_at: null }
-          : table === "contacts"
+              channel_session_id: "channel", last_inbound_at: null }
+          : table === "channel_sessions"
+            ? { provider: "waha" }
+            : table === "contacts"
             ? { name: "Lead Exemplo", is_personal: mock.personal }
             : table === "crm_leads"
               ? { custom_fields: { segmento: "imóveis" } }
@@ -91,7 +93,7 @@ describe("botão Enviar 1º atendimento", () => {
     expect((await POST(req, ctx)).status).toBe(200);
     expect(mock.send.mock.calls.map((call) => call[2].metadata.converzon_primeiro_atendimento)).toEqual([1, 2, 3]);
     expect(mock.authorize).toHaveBeenCalledTimes(1);
-    expect(mock.send.mock.calls[0][1].actor.type).toBe("user");
+    expect(mock.send.mock.calls[0]?.[1]?.actor.type).toBe("user");
   });
 
   it("retoma do bloco pendente quando o envio anterior parou no meio", async () => {

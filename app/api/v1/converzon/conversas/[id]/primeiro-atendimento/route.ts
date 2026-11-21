@@ -27,30 +27,27 @@ function idDaMensagem(conversa: string, posicao: number): string {
 }
 
 async function contexto(ctx: Context, requestId: string) {
-  if (!instalacaoDeAgencia()) return { response: fail("not_found", "Ação indisponível.", 404, { requestId }) } as const;
+  if (!instalacaoDeAgencia()) return { kind: "error", response: fail("not_found", "Ação indisponível.", 404, { requestId }) } as const;
   const auth = await requireRole("agent", { requestId, resource: "conversations" });
-  if (!auth.ok) return { response: auth.response } as const;
+  if (!auth.ok) return { kind: "error", response: auth.response } as const;
   const { id } = await ctx.params;
   if (!z.uuid().safeParse(id).success) {
-    return { response: fail("validation_failed", "Conversa inválida.", 422, { requestId }) } as const;
+    return { kind: "error", response: fail("validation_failed", "Conversa inválida.", 422, { requestId }) } as const;
   }
-  return { id, auth, db: await createClient(), orgId: auth.org.orgId } as const;
+  return { kind: "ok", id, auth, db: await createClient(), orgId: auth.org.orgId } as const;
 }
 
 async function lerSituacao(db: Awaited<ReturnType<typeof createClient>>, orgId: string, id: string, requestId: string) {
   const { data: conversa, error } = await db.from("conversations")
-    .select("contact_id, channel, is_group, status, last_inbound_at, assigned_to_user_id, channel_sessions!inner(provider)")
-    .eq("organization_id", orgId).eq("channel_sessions.organization_id", orgId).eq("id", id).maybeSingle();
+    .select("contact_id, channel, is_group, status, last_inbound_at, assigned_to_user_id, channel_session_id")
+    .eq("organization_id", orgId).eq("id", id).maybeSingle();
   if (error) throw new ApiError(500, "internal_error", undefined, requestId, "Não foi possível ler a conversa.");
   if (!conversa?.contact_id || conversa.channel !== "whatsapp" || conversa.is_group ||
       ["closed", "archived", "resolved"].includes(conversa.status)) return null;
-  if (estadoDaJanela(conversa.channel_sessions.provider, conversa.last_inbound_at, new Date()).tipo === "fechada") {
-    return null;
-  }
 
   const contactId = conversa.contact_id;
   const ids = [0, 1, 2].map((i) => idDaMensagem(id, i));
-  const [contato, lead, mensagens, outraMensagem] = await Promise.all([
+  const [contato, lead, mensagens, outraMensagem, canal] = await Promise.all([
     db.from("contacts").select("name, display_name, is_personal, is_blocked, is_anonymized, force_human, ai_opt_out, tags")
       .eq("organization_id", orgId).eq("id", contactId).maybeSingle(),
     db.from("crm_leads").select("custom_fields, crm_pipelines!inner(name)")
@@ -63,10 +60,14 @@ async function lerSituacao(db: Awaited<ReturnType<typeof createClient>>, orgId: 
       .eq("organization_id", orgId).eq("conversation_id", id).eq("direction", "outbound")
       .is("revoked_at", null).not("id", "in", "(" + ids.join(",") + ")")
       .in("status", [...ENVIADOS, ...EM_CURSO]).limit(1),
+    db.from("channel_sessions").select("provider")
+      .eq("organization_id", orgId).eq("id", conversa.channel_session_id)
+      .is("archived_at", null).maybeSingle(),
   ]);
-  if (contato.error || lead.error || mensagens.error || outraMensagem.error) {
+  if (contato.error || lead.error || mensagens.error || outraMensagem.error || canal.error) {
     throw new ApiError(500, "internal_error", undefined, requestId, "Não foi possível conferir o lead.");
   }
+  if (!canal.data || estadoDaJanela(canal.data.provider, conversa.last_inbound_at, new Date()).tipo === "fechada") return null;
   const c = contato.data;
   if (!c || !lead.data || c.is_personal || c.is_blocked || c.is_anonymized || c.force_human ||
       c.ai_opt_out || c.tags?.includes("cliente") || outraMensagem.data.length > 0) return null;
@@ -88,7 +89,7 @@ function respostaDeErro(err: unknown, requestId: string): Response {
 export async function GET(_req: NextRequest, ctx: Context): Promise<Response> {
   const requestId = randomUUID();
   const c = await contexto(ctx, requestId);
-  if ("response" in c) return c.response;
+  if (c.kind === "error") return c.response;
   try {
     const situacao = await lerSituacao(c.db, c.orgId, c.id, requestId);
     const podeEnviar = !!situacao && (!situacao.assignedTo || situacao.assignedTo === c.auth.user.id)
@@ -104,7 +105,7 @@ export async function POST(_req: NextRequest, ctx: Context): Promise<Response> {
   if (denied) return denied;
   const requestId = randomUUID();
   const c = await contexto(ctx, requestId);
-  if ("response" in c) return c.response;
+  if (c.kind === "error") return c.response;
   try {
     const resultado = await comIdempotencia({
       db: c.db, organizationId: c.orgId, endpoint: ENDPOINT, chave: c.id, corpo: { conversa: c.id },

@@ -28,7 +28,7 @@ function paraBusca(valor: string): string {
 function encaixar(valor: string): string {
   const comLimite = valor.slice(0, 250).trim().replace(/[.,;!?]+$/, "");
   return comLimite && !/^\p{Lu}\p{Lu}/u.test(comLimite)
-    ? comLimite[0].toLocaleLowerCase("pt-BR") + comLimite.slice(1)
+    ? comLimite.charAt(0).toLocaleLowerCase("pt-BR") + comLimite.slice(1)
     : comLimite;
 }
 
@@ -82,7 +82,7 @@ export function montarPrimeiroAtendimento(
   const respostas = new Map<Chave, string>(
     respostasDeclaradas(campos).map(({ key, value }) => [key, value]),
   );
-  const primeiro = texto(nome).split(" ")[0];
+  const primeiro = texto(nome).split(" ", 1)[0] ?? "";
   const nomeReal = /^\p{L}{2,}[\p{L}\p{M}'-]*$/u.test(primeiro) ? primeiro : "";
   const segmento = encaixar(respostas.get("segmento") ?? "");
   const objetivo = encaixar(respostas.get("objetivo_principal") ?? "");
