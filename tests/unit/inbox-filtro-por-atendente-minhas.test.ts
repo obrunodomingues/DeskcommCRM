@@ -15,7 +15,7 @@ const ATENDENTE = "0a0a0a0a-1111-4000-8000-000000000002";
 type Linha = Record<string, unknown>;
 let linhas: Linha[] = [];
 
-/** Builder falso do supabase-js: aplica eq/in/not-in/gt sobre `linhas` e conta. */
+/** Builder falso do supabase-js: aplica eq/in/not-in/gt/contains sobre `linhas` e conta. */
 function consulta(filtros: Array<(l: Linha) => boolean> = []) {
   const com = (f: (l: Linha) => boolean) => consulta([...filtros, f]);
   const q = {
@@ -25,6 +25,9 @@ function consulta(filtros: Array<(l: Linha) => boolean> = []) {
     not: (c: string, _op: "in", lista: string) =>
       com((l) => !lista.slice(1, -1).split(",").includes(String(l[c]))),
     gt: (c: string, v: number) => com((l) => Number(l[c]) > v),
+    // Fork Converzon: a aba Clientes conta pela etiqueta do contato (`cs`).
+    contains: (c: string, vs: unknown[]) =>
+      com((l) => Array.isArray(l[c]) && vs.every((v) => (l[c] as unknown[]).includes(v))),
     or: () => q,
     then: (ok: (r: { count: number; error: null }) => unknown) =>
       Promise.resolve({ count: linhas.filter((l) => filtros.every((f) => f(l))).length, error: null }).then(ok),

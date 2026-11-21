@@ -124,11 +124,19 @@ describe("sidebarGroups", () => {
     // limite — com ela seriam 20 portas e o e2e reprova por scroll em 900px. A
     // razão e a condição que encerram a exceção estão ao lado do item, em
     // `lib/navigation/catalogo.ts`.
-    const crm = sidebarGroups(true, null).find((g) => g.group.id === "crm");
+    // Fork Converzon: no consultório (sem capacidade) a barra tem Tarefas; na
+    // agência (`converzon_agencia`) Projetos ocupa o lugar dela, e Tarefas segue
+    // no hub e no ⌘K (`saiDoMenuCom` no catálogo).
+    const consultorio = sidebarGroups(true, null, undefined, undefined, []).find((g) => g.group.id === "crm");
+    expect(consultorio?.items.map((i) => i.href)).toEqual(["/app/kanban", "/app/contacts", "/app/tasks"]);
+    const crm = sidebarGroups(true, null, undefined, undefined, ["converzon_agencia"]).find(
+      (g) => g.group.id === "crm",
+    );
     expect(crm?.items.map((i) => i.href)).toEqual([
       "/app/kanban",
       "/app/contacts",
-      "/app/tasks",
+      // Fork Converzon: na agência, Projetos no lugar de Tarefas.
+      "/app/projetos",
       // "/app/calls" (telefonia por SIP) NÃO entra aqui, e a ausência é a
       // decisão: o módulo é OPCIONAL e nasce desligado (doc 27), então a porta
       // no sidebar custaria um item a TODA instalação — e o vigésimo item é o
@@ -181,6 +189,8 @@ describe("hubSections", () => {
       "/app/contacts",
       "/app/companies",
       "/app/people",
+      // Fork Converzon: a execução dos serviços vendidos, rotina do dia.
+      "/app/projetos",
       "/app/tasks",
       // #1752: os planos caem embaixo de Tarefas, NA MESMA seção — um plano é
       // rotina do dia, não preparação nem fechamento. `sidebar: false` deixa o

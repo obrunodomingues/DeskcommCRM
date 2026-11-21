@@ -17,7 +17,22 @@ import { modulosLigados, type ModuloOpcional } from "@/lib/instalacao/modulos";
 import { logger } from "@/lib/logger";
 
 export const CAPACIDADES_DA_ORGANIZACAO = ["propostas"] as const;
-export type CapacidadeDaOrganizacao = (typeof CAPACIDADES_DA_ORGANIZACAO)[number];
+type CapacidadeDoCatalogo = (typeof CAPACIDADES_DA_ORGANIZACAO)[number];
+
+/**
+ * Fork Converzon: `converzon_agencia` não é decisão da empresa nem módulo da
+ * instalação. É o RAMO da instalação (`CONVERZON_PERFIL=agencia`), que o layout
+ * de `/app` acrescenta às capacidades ligadas para o menu mostrar as telas de
+ * agência (Projetos). Fica FORA de `CAPACIDADES_DA_ORGANIZACAO` de propósito:
+ * aquela lista é o catálogo de recursos opcionais que a empresa liga e desliga.
+ * `converzon_consultorio` é o ramo oposto (sem `CONVERZON_PERFIL`): enxuga o
+ * cabeçalho da conversa para quem atende sozinho.
+ * `converzon_atende_sozinho` leva SÓ esse cabeçalho enxuto a uma agência em que
+ * uma pessoa atende tudo (`CONVERZON_ATENDE_SOZINHO=1`), sem o menu e o
+ * vocabulário do consultório.
+ */
+export type CapacidadeDoFork = "converzon_agencia" | "converzon_consultorio" | "converzon_atende_sozinho";
+export type CapacidadeDaOrganizacao = CapacidadeDoCatalogo | CapacidadeDoFork;
 
 /**
  * O módulo da INSTALAÇÃO que cada capacidade exige (doc 79). A empresa liga a
@@ -25,7 +40,7 @@ export type CapacidadeDaOrganizacao = (typeof CAPACIDADES_DA_ORGANIZACAO)[number
  * e é aqui, e não em cada consumidor, que as duas se somam: tela, menu, rota,
  * ferramenta do agente e cron leem a mesma resposta.
  */
-const MODULO_DA_CAPACIDADE: Record<CapacidadeDaOrganizacao, ModuloOpcional> = {
+const MODULO_DA_CAPACIDADE: Record<CapacidadeDoCatalogo, ModuloOpcional> = {
   propostas: "propostas",
 };
 
@@ -42,7 +57,7 @@ export function capacidadesLigadas(
   modulos: readonly ModuloOpcional[],
 ): CapacidadeDaOrganizacao[] {
   const propostas = objeto(objeto(settings)?.proposals);
-  const daEmpresa: CapacidadeDaOrganizacao[] = propostas?.enabled === true ? ["propostas"] : [];
+  const daEmpresa: CapacidadeDoCatalogo[] = propostas?.enabled === true ? ["propostas"] : [];
   return daEmpresa.filter((c) => modulos.includes(MODULO_DA_CAPACIDADE[c]));
 }
 

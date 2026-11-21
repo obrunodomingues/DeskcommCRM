@@ -36,6 +36,7 @@ const get = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/api/client", () => ({ apiClient: { post, get, patch: vi.fn() } }));
 vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn(), warning: vi.fn() } }));
 vi.mock("@/hooks/auth/AuthProvider", () => ({
+  useActiveOrg: () => null,
   usePermission: (chave: string) => chave === "pipeline.move_card",
 }));
 vi.mock("@/hooks/kanban/useUpdateLead", () => ({

@@ -67,7 +67,9 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 
-describe("as seis abas, na ordem pedida pela #2498", () => {
+// Fork Converzon: a faixa virou Todas/Novas/Aguardando (+ Fechadas/Arquivadas) —
+// a ordem nova é presa por tests/unit/converzon-inbox-e-funil.test.ts.
+describe.skip("as seis abas, na ordem pedida pela #2498", () => {
   it("Automático, Fila, Minhas, Todas, Fechadas, Arquivadas — nessa ordem", () => {
     render(<InboxFilters value={VALUE} onChange={() => {}} />);
     expect(abasRenderizadas()).toEqual([
@@ -111,7 +113,7 @@ describe("as seis abas, na ordem pedida pela #2498", () => {
   });
 });
 
-describe("só a ordem muda — as permissões continuam quem eram", () => {
+describe.skip("só a ordem muda — as permissões continuam quem eram (fork Converzon: faixa substituída)", () => {
   it("manager vê as seis, com 'Todas' no meio", () => {
     expect(visibleInboxTabs("manager", "all")).toEqual([
       "ai",

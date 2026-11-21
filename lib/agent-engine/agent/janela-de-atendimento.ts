@@ -41,6 +41,12 @@ export interface JanelaDeAtendimento {
   end: string;
   /** 0=domingo … 6=sábado, sem repetição, ao menos um. */
   weekdays: number[];
+  /**
+   * Fork Converzon: horário próprio de alguns dias (chave 0–6), no lugar de
+   * `start`/`end` — ex.: sábado 08:00–13:00 com a semana 08:00–18:00. Só vale
+   * para dias que estão em `weekdays`; faixa torta é ignorada (cai na padrão).
+   */
+  por_dia?: Record<number, { start: string; end: string }>;
 }
 
 const HORA_RX = /^([01][0-9]|2[0-3]):([0-5][0-9])$/;
@@ -49,6 +55,15 @@ function minutosDe(hhmm: string): number | null {
   const m = HORA_RX.exec(hhmm);
   if (m === null) return null;
   return Number(m[1]) * 60 + Number(m[2]);
+}
+
+/** Abertura e fechamento (minutos desde a meia-noite) de UM dia da janela. */
+function faixaDoDia(janela: JanelaDeAtendimento, dia: number): { inicio: number; fim: number } | null {
+  const propria = janela.por_dia?.[dia];
+  const inicio = minutosDe(propria?.start ?? janela.start);
+  const fim = minutosDe(propria?.end ?? janela.end);
+  if (inicio === null || fim === null || fim <= inicio) return null;
+  return { inicio, fim };
 }
 
 /**
@@ -94,7 +109,24 @@ export function lerJanelaDeAtendimento(triggerConfig: unknown): JanelaDeAtendime
     return null;
   }
 
-  return { timezone, start, end, weekdays: dias };
+  // Fork Converzon: horário próprio por dia. Entrada torta é IGNORADA (o dia
+  // usa a faixa padrão), nunca derruba a janela inteira.
+  let por_dia: Record<number, { start: string; end: string }> | undefined;
+  const porDiaBruto = (bh as { por_dia?: unknown }).por_dia;
+  if (typeof porDiaBruto === 'object' && porDiaBruto !== null) {
+    for (const [chave, faixa] of Object.entries(porDiaBruto as Record<string, unknown>)) {
+      const dia = Number(chave);
+      if (!Number.isInteger(dia) || dia < 0 || dia > 6) continue;
+      const { start: s, end: e } = (faixa ?? {}) as { start?: unknown; end?: unknown };
+      if (typeof s !== 'string' || typeof e !== 'string') continue;
+      const i = minutosDe(s);
+      const f = minutosDe(e);
+      if (i === null || f === null || f <= i) continue;
+      por_dia = { ...(por_dia ?? {}), [dia]: { start: s, end: e } };
+    }
+  }
+
+  return { timezone, start, end, weekdays: dias, ...(por_dia ? { por_dia } : {}) };
 }
 
 /** Dia da semana (0–6) e minutos desde a meia-noite NO FUSO da janela. */
@@ -135,19 +167,21 @@ export function msAteAJanelaAbrir(janela: JanelaDeAtendimento, agora: Date): num
     return null; // falha aberta
   }
 
-  const inicio = minutosDe(janela.start);
-  const fim = minutosDe(janela.end);
-  if (inicio === null || fim === null) return null;
-
+  const hoje = faixaDoDia(janela, local.dia);
   const aberta =
-    janela.weekdays.includes(local.dia) && local.minutos >= inicio && local.minutos < fim;
+    janela.weekdays.includes(local.dia) &&
+    hoje !== null &&
+    local.minutos >= hoje.inicio &&
+    local.minutos < hoje.fim;
   if (aberta) return null;
 
   for (let offset = 0; offset <= 7; offset += 1) {
     const dia = (local.dia + offset) % 7;
     if (!janela.weekdays.includes(dia)) continue;
-    if (offset === 0 && local.minutos >= inicio) continue; // hoje a janela já passou
-    const minutosAteAbrir = offset * 24 * 60 + inicio - local.minutos;
+    const faixa = faixaDoDia(janela, dia);
+    if (faixa === null) continue;
+    if (offset === 0 && local.minutos >= faixa.inicio) continue; // hoje a janela já passou
+    const minutosAteAbrir = offset * 24 * 60 + faixa.inicio - local.minutos;
     if (minutosAteAbrir > 0) return minutosAteAbrir * 60_000;
   }
 
@@ -178,16 +212,15 @@ export function inicioDoPeriodoFechado(janela: JanelaDeAtendimento, agora: Date)
     return null; // falha aberta: sem relógio local não há período
   }
 
-  const fim = minutosDe(janela.end);
-  if (fim === null) return null;
-
   // Volta até 8 dias (um ciclo inteiro + 1) procurando o último dia da janela
   // cujo FECHAMENTO (end) já passou. `minutosDesdeOFechamento < 0` no primeiro
   // candidato = a janela fecha HOJE mais tarde (ou ainda não abriu hoje).
   for (let voltas = 0; voltas <= 7; voltas += 1) {
     const dia = (local.dia - voltas + 14) % 7;
     if (!janela.weekdays.includes(dia)) continue;
-    const minutosDesdeOFechamento = local.minutos - fim + voltas * 24 * 60;
+    const faixa = faixaDoDia(janela, dia);
+    if (faixa === null) continue;
+    const minutosDesdeOFechamento = local.minutos - faixa.fim + voltas * 24 * 60;
     if (minutosDesdeOFechamento < 0) continue;
     // Base no MINUTO cheio: `relogioLocal` conta minutos inteiros, e somar isso
     // a um `agora` com segundos fazia o início herdar os segundos — a chave do

@@ -462,6 +462,8 @@ function BotaoDeRecolher({
 export function Sidebar({ collapsed }: { collapsed: boolean }) {
   return (
     <aside
+      // Fork Converzon: a barra usa o tema oposto ao da página (app/converzon.css).
+      data-lado-invertido=""
       className={cn(
         // ⚠️ `sticky`, e NUNCA `fixed`.
         //

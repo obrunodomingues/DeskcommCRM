@@ -6,11 +6,9 @@
  * CRM. Este teste prende cada valor de `sent_via` ao rótulo certo, mais o caso
  * que NÃO leva rótulo (mensagem recebida).
  *
- * `sent_via='user'` não diz QUAL humano digitou — só que um humano digitou. Por
- * isso "Você" depende de duas pontas: `viewerUserId` (quem lê) e
- * `sent_by_user_id` (quem enviou). Faltando qualquer uma, o rótulo é
- * "Atendente"; os casos abaixo prendem as três combinações (sou eu, é o colega,
- * não se sabe).
+ * `sent_via='user'` não diz QUAL humano digitou — só que um humano digitou. No
+ * fork Converzon o rótulo é "CRM" nas três combinações (sou eu, é o colega, não
+ * se sabe): a equipe inteira atende pela mesma conversa.
  *
  * Não há caso para `'automation'`: nenhum emissor grava esse valor, e o
  * componente deixou de nomeá-lo. Quem guarda essa propriedade — nas duas
@@ -201,33 +199,22 @@ describe("MessageBubble — rótulo de origem", () => {
     expect(screen.getByText("Automação")).toBeInTheDocument();
   });
 
-  it("digitada no CRM por QUEM ESTÁ LENDO mostra 'Você'", () => {
+  // Fork Converzon: digitada no CRM é "CRM" para qualquer pessoa da equipe —
+  // quem lê, o colega ou emissor desconhecido. Nunca "Você" nem "Atendente".
+  it.each([
+    ["por QUEM ESTÁ LENDO", "u-eu"],
+    ["pelo COLEGA", "u-colega"],
+    ["sem emissor gravado", null],
+  ])("digitada no CRM %s mostra 'CRM'", (_caso, quemEnviou) => {
     render(
       <MessageBubble
-        message={msg({ sent_via: "user", sent_by_user_id: "u-eu" })}
+        message={msg({ sent_via: "user", sent_by_user_id: quemEnviou })}
         viewerUserId="u-eu"
       />,
     );
-    expect(screen.getByText("Você")).toBeInTheDocument();
-  });
-
-  it("digitada no CRM pelo COLEGA mostra 'Atendente', nunca 'Você'", () => {
-    render(
-      <MessageBubble
-        message={msg({ sent_via: "user", sent_by_user_id: "u-colega" })}
-        viewerUserId="u-eu"
-      />,
-    );
-    expect(screen.getByText("Atendente")).toBeInTheDocument();
+    expect(screen.getByText("CRM")).toBeInTheDocument();
     expect(screen.queryByText("Você")).not.toBeInTheDocument();
-  });
-
-  it("sem emissor gravado (sent_by_user_id nulo) mostra 'Atendente'", () => {
-    // Os dois nulos se equivalem em `===`. Sem a guarda de `viewerUserId != null`
-    // este caso voltaria a dizer "Você" para uma mensagem de dono desconhecido.
-    render(<MessageBubble message={msg({ sent_via: "user", sent_by_user_id: null })} />);
-    expect(screen.getByText("Atendente")).toBeInTheDocument();
-    expect(screen.queryByText("Você")).not.toBeInTheDocument();
+    expect(screen.queryByText("Atendente")).not.toBeInTheDocument();
   });
 
   it("crm (o DEFAULT da coluna) segue a mesma regra de 'user'", () => {
@@ -237,7 +224,7 @@ describe("MessageBubble — rótulo de origem", () => {
         viewerUserId="u-eu"
       />,
     );
-    expect(screen.getByText("Você")).toBeInTheDocument();
+    expect(screen.getByText("CRM")).toBeInTheDocument();
   });
 
   it("IA continua mostrando 'IA' (comportamento preservado)", () => {

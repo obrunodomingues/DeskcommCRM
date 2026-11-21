@@ -49,7 +49,10 @@ describe("o catálogo de recursos opcionais não deixa recurso de fora", () => {
     const fora = PORTAS.filter(
       (d) =>
         (d.modulo && !MODULOS_NO_CATALOGO.has(d.modulo)) ||
-        (d.capacidade && !CAPACIDADES_NO_CATALOGO.has(d.capacidade)),
+        // Fork Converzon: `converzon_agencia` é o ramo da instalação
+        // (CONVERZON_PERFIL), não um recurso que a empresa liga e desliga
+        // (lib/organizacao/capacidades.ts), então não tem linha neste catálogo.
+        (d.capacidade && d.capacidade !== "converzon_agencia" && !CAPACIDADES_NO_CATALOGO.has(d.capacidade)),
     ).map((d) => `${d.href} (${d.modulo ?? d.capacidade})`);
     expect(
       fora,

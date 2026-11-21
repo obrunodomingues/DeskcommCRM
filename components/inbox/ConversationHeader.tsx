@@ -38,6 +38,7 @@ import { FaixaDaCarteira } from "@/components/inbox/FaixaDaCarteira";
 import { comandoDaConversa, ROTULO_DO_MOTIVO } from "@/lib/inbox/comando-da-conversa";
 import { ReassignDialog } from "@/components/inbox/ReassignDialog";
 import { SnoozeButton } from "@/components/inbox/SnoozeButton";
+import { AcoesConverzonDaConversa } from "@/components/inbox/AcoesConverzonDaConversa";
 import { DialButton } from "@/components/voice/DialButton";
 import { VideoCallButton } from "@/components/inbox/VideoCallButton";
 import { motivoDoContato } from "@/lib/inbox/motivo-do-envio-bloqueado";
@@ -120,6 +121,12 @@ export function ConversationHeader({
   const phone = c?.phone_number ? phoneForDisplay(c.phone_number) : null;
   const status = conversation.status;
   const isMineAssigned = conversation.assigned_to_user_id === user.id;
+  // Fork Converzon: quem atende sozinho (o consultório, ou uma agência com
+  // CONVERZON_ATENDE_SOZINHO) não usa Liberar, Transferir nem Lembrar, e a volta
+  // se chama "Devolver para IA".
+  const consultorio =
+    !!activeOrg?.capacidades_ligadas?.includes("converzon_consultorio") ||
+    !!activeOrg?.capacidades_ligadas?.includes("converzon_atende_sozinho");
   const isOpen = status === "open" || conversation.assigned_to_user_id == null;
 
   // Marcar/desmarcar pessoal (spec 21, etapa 15 — botão no cabeçalho).
@@ -381,7 +388,7 @@ export function ConversationHeader({
             {t("Assumir")}
           </Button>
         )}
-        {isMineAssigned && (
+        {isMineAssigned && !consultorio && (
           <Button
             size="sm"
             variant="outline"
@@ -437,7 +444,7 @@ export function ConversationHeader({
             }
             onClick={() => retomar.mutate({ conversation_id: conversation.id })}
           >
-            {retomar.isPending ? t("Devolvendo...") : t("Devolver ao automático")}
+            {retomar.isPending ? t("Devolvendo...") : consultorio ? t("Devolver para IA") : t("Devolver ao automático")}
           </Button>
         )}
         {podePausar && (
@@ -455,7 +462,7 @@ export function ConversationHeader({
             {pausar.isPending ? t("Pausando...") : t("Pausar o automático")}
           </Button>
         )}
-        {!encerrada && (
+        {!encerrada && !consultorio && (
           <Button
             size="sm"
             variant="outline"
@@ -470,12 +477,25 @@ export function ConversationHeader({
             {t("Transferir")}
           </Button>
         )}
-        {!encerrada && (
+        {!encerrada && !consultorio && (
           <SnoozeButton
             conversationId={conversation.id}
             snoozeUntil={conversation.snooze_until ?? null}
           />
         )}
+        {/* Fork Converzon: "Não precisa responder" e "Apagar contato e conversas". */}
+        <AcoesConverzonDaConversa
+          conversationId={conversation.id}
+          contactId={c?.id ?? null}
+          nomeDoContato={displayName}
+          clienteFalouPorUltimo={
+            !!conversation.last_inbound_at &&
+            (!conversation.last_outbound_at ||
+              Date.parse(conversation.last_inbound_at) > Date.parse(conversation.last_outbound_at))
+          }
+          encerrada={encerrada}
+          whatsappIndividual={conversation.channel === "whatsapp" && !conversation.is_group}
+        />
         {!encerrada && (
           <Button
             size="sm"

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { EntradaDeMensagem } from "@/lib/channels/pos-entrada";
+import type * as NascimentoDoLead from "@/lib/leads/nascimento-do-lead";
 
 /**
  * ENTRADA DE PESSOAL: GUARDA, MAS ESCONDE — E NÃO GERA NADA (spec 21, etapa 6).
@@ -191,7 +192,7 @@ describe("pós-entrada de contato pessoal não gera nada", () => {
 });
 
 describe("nascimento do lead recusa pessoal (segunda defesa)", () => {
-  function bancoDoNascimento(pessoal: boolean, bloqueado = false) {
+  function bancoDoNascimento(pessoal: boolean, bloqueado = false, tags: string[] = []) {
     return {
       from() {
         return {
@@ -209,6 +210,7 @@ describe("nascimento do lead recusa pessoal (segunda defesa)", () => {
                       source: "whatsapp",
                       source_metadata: null,
                       first_service_at: null,
+                      tags,
                     },
                     error: null,
                   };
@@ -222,7 +224,7 @@ describe("nascimento do lead recusa pessoal (segunda defesa)", () => {
   }
 
   it("pessoal devolve contato_pessoal (nunca contato_bloqueado)", async () => {
-    const real = await vi.importActual<typeof import("@/lib/leads/nascimento-do-lead")>(
+    const real = await vi.importActual<typeof NascimentoDoLead>(
       "@/lib/leads/nascimento-do-lead",
     );
     const r = await real.garantirLeadDaConversa(bancoDoNascimento(true), {
@@ -235,7 +237,7 @@ describe("nascimento do lead recusa pessoal (segunda defesa)", () => {
   });
 
   it("bloqueado continua devolvendo contato_bloqueado", async () => {
-    const real = await vi.importActual<typeof import("@/lib/leads/nascimento-do-lead")>(
+    const real = await vi.importActual<typeof NascimentoDoLead>(
       "@/lib/leads/nascimento-do-lead",
     );
     const r = await real.garantirLeadDaConversa(bancoDoNascimento(false, true), {
@@ -245,5 +247,23 @@ describe("nascimento do lead recusa pessoal (segunda defesa)", () => {
       nomeDoContato: "Fulano",
     });
     expect(r).toEqual({ criado: false, motivo: "contato_bloqueado" });
+  });
+
+  it("na agência, uma nova mensagem de cliente marcado não cria outro negócio", async () => {
+    vi.stubEnv("CONVERZON_PERFIL", "agencia");
+    try {
+      const real = await vi.importActual<typeof NascimentoDoLead>(
+        "@/lib/leads/nascimento-do-lead",
+      );
+      const r = await real.garantirLeadDaConversa(bancoDoNascimento(false, false, ["cliente"]), {
+        organizationId: "org-1",
+        contactId: "contato-1",
+        conversationId: "conversa-1",
+        nomeDoContato: "Contato",
+      });
+      expect(r).toEqual({ criado: false, motivo: "contato_cliente" });
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 });

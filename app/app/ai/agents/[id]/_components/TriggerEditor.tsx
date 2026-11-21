@@ -26,6 +26,11 @@ export interface BusinessHoursValue {
    * Ausente/vazio = sem aviso (comportamento de antes).
    */
   notice?: string | null;
+  /**
+   * Fork Converzon: horário próprio de alguns dias (chave "0"–"6"), no lugar de
+   * início/fim — a tela oferece o do sábado. Ver `janela-de-atendimento.ts`.
+   */
+  por_dia?: Record<string, { start: string; end: string }> | null;
 }
 
 export interface TriggerValue {
@@ -89,6 +94,15 @@ export function TriggerEditor({ value, onChange, disabled, organizationTimezone 
     const has = bh.weekdays.includes(d);
     const next = has ? bh.weekdays.filter((x) => x !== d) : [...bh.weekdays, d].sort();
     patchBh({ weekdays: next });
+  }
+
+  // Fork Converzon: o sábado com horário próprio (ex.: 08:00–13:00).
+  const sabado = bh?.por_dia?.["6"] ?? null;
+  function setSabado(faixa: { start: string; end: string } | null) {
+    if (!bh) return;
+    const resto: Record<string, { start: string; end: string }> = { ...(bh.por_dia ?? {}) };
+    delete resto["6"];
+    patchBh({ por_dia: faixa ? { ...resto, "6": faixa } : Object.keys(resto).length > 0 ? resto : null });
   }
 
   return (
@@ -249,6 +263,43 @@ export function TriggerEditor({ value, onChange, disabled, organizationTimezone 
                 })}
               </div>
             </div>
+            {bh.weekdays.includes(6) && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={!!sabado}
+                    onCheckedChange={(v) => setSabado(v ? { start: bh.start, end: "13:00" } : null)}
+                    disabled={disabled}
+                    id="bh_sabado"
+                  />
+                  <Label htmlFor="bh_sabado">{t("Horário diferente no sábado")}</Label>
+                </div>
+                {sabado && (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-1">
+                      <Label htmlFor="bh_sabado_inicio">{t("Início no sábado")}</Label>
+                      <Input
+                        id="bh_sabado_inicio"
+                        type="time"
+                        value={sabado.start}
+                        onChange={(e) => setSabado({ ...sabado, start: e.target.value })}
+                        disabled={disabled}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="bh_sabado_fim">{t("Fim no sábado")}</Label>
+                      <Input
+                        id="bh_sabado_fim"
+                        type="time"
+                        value={sabado.end}
+                        onChange={(e) => setSabado({ ...sabado, end: e.target.value })}
+                        disabled={disabled}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="space-y-1">
               <Label htmlFor="bh_notice">{t("Mensagem fora do horário (opcional)")}</Label>
               <Textarea

@@ -1854,11 +1854,33 @@ async function handleMessageRevoked(
         ? depois.fromMe
         : undefined;
 
-  await admin
+  const { data: apagadas } = await admin
     .from("messages")
     .update({ revoked_at: new Date().toISOString() })
     .eq("organization_id", session.organization_id)
-    .in("external_id", formasDaMensagemOriginal(p.revokedMessageId, chat, fromMe));
+    .in("external_id", formasDaMensagemOriginal(p.revokedMessageId, chat, fromMe))
+    .select("conversation_id, sent_at");
+
+  // Fork Converzon: a prévia da lista mostrava o texto apagado (um "?" que a
+  // conversa já não tinha). Se a apagada era a ÚLTIMA da conversa, a prévia
+  // passa a dizer isso. A aba "Sem resposta" já ignora a mensagem apagada
+  // (`converzon_sem_resposta`, converzon/sql/0003).
+  for (const m of (apagadas ?? []) as { conversation_id: string | null; sent_at: string | null }[]) {
+    if (!m.conversation_id || !m.sent_at) continue;
+    const { count } = await admin
+      .from("messages")
+      .select("id", { count: "exact", head: true })
+      .eq("organization_id", session.organization_id)
+      .eq("conversation_id", m.conversation_id)
+      .gt("sent_at", m.sent_at);
+    if (count === 0) {
+      await admin
+        .from("conversations")
+        .update({ last_message_preview: "Mensagem apagada" })
+        .eq("organization_id", session.organization_id)
+        .eq("id", m.conversation_id);
+    }
+  }
 }
 
 /**

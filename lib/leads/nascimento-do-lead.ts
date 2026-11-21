@@ -52,6 +52,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { marcaDaOrigem, origemDeCampanhaDaConversa } from "@/lib/campanhas/origem-do-lead";
 
 import { logger } from "@/lib/logger";
+import { lerPerfil } from "@/lib/converzon/perfil";
+import { ETIQUETA_DE_CLIENTE } from "@/lib/inbox/abas-converzon";
 import { ORIGEM_DO_WHATSAPP } from "@/lib/channels/origem-do-negocio";
 
 import { lerClientePelaAgenda } from "@/lib/contacts/cliente-pela-agenda";
@@ -104,6 +106,7 @@ const ORIGEM_PADRAO: OrigemDoNascimento = ORIGEM_DO_WHATSAPP;
 export type MotivoSemLead =
   | "ja_existe" // o contato já tem lead aberto: um por demanda, não um por mensagem
   | "contato_bloqueado" // pediu para sair; criar oportunidade seria desrespeito registrado
+  | "contato_cliente"
   | "contato_pessoal" // marcado como pessoal (spec 21): não é oportunidade, nunca nasce
   | "sem_funil_de_entrada" // a organização não tem funil padrão — falha de configuração, visível
   | "sem_etapa" // o funil existe e não tem etapa utilizável
@@ -273,7 +276,7 @@ export async function garantirLeadDaConversa(
     // `first_service_at` viaja no select que JÁ existe: decidir o funil não custa
     // uma consulta a mais no caminho quente da ingestão. É por isso que o fato
     // mora numa coluna de `contacts`, e não é derivado da agenda a cada inbound.
-    .select("is_blocked,is_personal,display_name,name,phone_number,source,source_metadata,first_service_at")
+    .select("is_blocked,is_personal,display_name,name,phone_number,source,source_metadata,first_service_at,tags")
     .eq("organization_id", organizationId)
     .eq("id", contactId)
     .maybeSingle();
@@ -281,6 +284,10 @@ export async function garantirLeadDaConversa(
   if (contato?.is_blocked === true) return { criado: false, motivo: "contato_bloqueado" };
   if ((contato as { is_personal?: boolean } | null)?.is_personal === true)
     return { criado: false, motivo: "contato_pessoal" };
+  // O worker de voz também chama esta função e usa o próprio ambiente.
+  if (contato?.tags?.includes(ETIQUETA_DE_CLIENTE) && lerPerfil(process.env.CONVERZON_PERFIL) === "agencia") {
+    return { criado: false, motivo: "contato_cliente" };
+  }
 
   // 2 · já existe demanda aberta?
   const { data: existente } = await db
@@ -296,11 +303,8 @@ export async function garantirLeadDaConversa(
 
   // 3 · onde entra
   //
-  // Cliente que volta a escrever não é captação: ele tem histórico, e o funil de
-  // entrada existe para medir quem é novo. Quem decide é `first_service_at` (a
-  // COLUNA, carimbada pelo agendamento), nunca a tag `cliente` — a tag é
-  // removível à mão e pelo PATCH de contatos, e âncora removível faria alguém
-  // voltar a ser lead por descuido de quem editou etiquetas.
+  // A regra de clientes da agenda usa first_service_at. Na Converzon, os
+  // contatos marcados como cliente já saíram da criação automática no passo 1.
   //
   // ⚠️ E SÓ COM A REGRA LIGADA NA ORGANIZAÇÃO (migration 0262). Desligada, a
   // coluna fica congelada no que era quando a regra estava ligada, e rotear por

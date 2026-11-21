@@ -44,9 +44,18 @@ import {
   type InboxFiltersValue,
 } from "@/components/inbox/InboxFilters";
 
+// Fork Converzon: a aba Clientes só aparece numa instalação de agência
+// (`converzon_agencia`). O padrão aqui é a agência; o caso do consultório troca.
+const capacidades: { atual: string[] } = { atual: ["converzon_agencia"] };
 vi.mock("@/hooks/auth/AuthProvider", () => ({
   useAuth: () => ({
-    activeOrg: { orgId: "org-1", name: "Org", role: "manager", visibility_mode: "all" },
+    activeOrg: {
+      orgId: "org-1",
+      name: "Org",
+      role: "manager",
+      visibility_mode: "all",
+      capacidades_ligadas: capacidades.atual,
+    },
   }),
 }));
 vi.mock("@/hooks/channels/useChannelSessions", () => ({
@@ -63,7 +72,7 @@ vi.mock("@/hooks/contacts/useContactTagVocabulary", () => ({
 // com elas que o corte foi medido.
 vi.mock("@/hooks/inbox/useConversationCounts", () => ({
   useConversationCounts: () => ({
-    data: { fila: 47, automatico: 12, mine: 8, all: 130, closed: 25, archived: 9 },
+    data: { fila: 47, automatico: 12, mine: 8, all: 130, closed: 25, archived: 9, novas: 6, aguardando_resposta: 2, clientes: 4 },
   }),
 }));
 
@@ -99,18 +108,31 @@ describe("faixa da Inbox — quebra em vez de esconder aba (#2745)", () => {
     ).toContain("gap-x-1");
   });
 
-  it("as SEIS abas estão na faixa, com os rótulos inteiros", () => {
+  // Fork Converzon: a faixa tem SEIS abas (lib/inbox/abas-converzon.ts).
+  it("as SEIS abas do fork estão na faixa, com os rótulos inteiros", () => {
     render(<InboxFilters value={VALUE} onChange={() => {}} />);
     // Guarda de vacuidade do caso acima e defesa do outro lado do defeito:
     // a saída fácil para \"não cabe\" é encurtar rótulo ou tirar aba, e aí a
     // catraca de classe continua verde com a tela errada.
     const abas = screen.getAllByRole("tab");
     expect(abas).toHaveLength(6);
-    for (const rotulo of ["Automático", "Fila", "Minhas", "Todas", "Fechadas", "Arquivadas"]) {
+    for (const rotulo of ["Todas", "Sem resposta", "Precisam de você", "Clientes", "Fechadas", "Arquivadas"]) {
       expect(
         screen.getByRole("tab", { name: new RegExp(rotulo) }),
         `a aba "${rotulo}" não está na faixa`,
       ).toBeInTheDocument();
+    }
+  });
+
+  it("no consultório (sem converzon_agencia) a aba Clientes some e as outras cinco ficam", () => {
+    capacidades.atual = [];
+    try {
+      render(<InboxFilters value={VALUE} onChange={() => {}} />);
+      expect(screen.getAllByRole("tab")).toHaveLength(5);
+      expect(screen.queryByRole("tab", { name: /Clientes/ })).not.toBeInTheDocument();
+      expect(screen.getByRole("tab", { name: /Precisam de você/ })).toBeInTheDocument();
+    } finally {
+      capacidades.atual = ["converzon_agencia"];
     }
   });
 
@@ -123,23 +145,23 @@ describe("faixa da Inbox — quebra em vez de esconder aba (#2745)", () => {
     expect(onChange).toHaveBeenCalledWith({ ...VALUE, tab: "archived" });
   });
 
-  it("a ordem e os valores das abas não mudaram (#2498)", () => {
+  it("a ordem e os valores das abas são os do fork (Todas primeiro)", () => {
     render(<InboxFilters value={VALUE} onChange={() => {}} />);
     // `visibleInboxTabs` é a fonte da ORDEM do trabalho; a largura não se paga
     // reordenando nem renomeando.
     expect(visibleInboxTabs("manager", "all")).toEqual([
-      "ai",
-      "unassigned",
-      "mine",
       "all",
+      "novas",
+      "aguardando_resposta",
+      "clientes",
       "closed",
       "archived",
     ]);
     expect(screen.getAllByRole("tab").map((a) => a.textContent?.replace(/\s+/g, ""))).toEqual([
-      "Automático12",
-      "Fila47",
-      "Minhas8",
       "Todas130",
+      "Semresposta6",
+      "Precisamdevocê2",
+      "Clientes4",
       "Fechadas25",
       "Arquivadas9",
     ]);

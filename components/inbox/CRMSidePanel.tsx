@@ -3,6 +3,8 @@
 import { RoteirosDoContato } from "@/components/contacts/RoteirosDoContato";
 import { AcervoSearch } from "./AcervoSearch";
 import { LeadEnrichment } from "./LeadEnrichment";
+import { NotasInternasDoPainel } from "./NotasInternasDoPainel";
+import { MarcarComoCliente } from "./MarcarComoCliente";
 import { AnuncioDoContato, type AnuncioDeOrigem, type AnuncioMaisRecente } from "./AnuncioDoContato";
 import type { ProspectEnrichment } from "@/lib/prospecting/schema";
 import { useAuth } from "@/hooks/auth/AuthProvider";
@@ -969,6 +971,8 @@ export function CRMSidePanel({ conversation, recolhido = false, onAlternarRecolh
             >
               <Tag size={12} className="mr-1" weight="regular" aria-hidden /> {t("Tags do contato")}
             </Button>
+            {/* Fork Converzon: a marca de cliente (aba Clientes + IA desligada). */}
+            {contactId && <MarcarComoCliente contactId={contactId} tags={tags} disabled={readonly} />}
             <Button
               size="sm"
               variant="outline"
@@ -994,6 +998,9 @@ export function CRMSidePanel({ conversation, recolhido = false, onAlternarRecolh
           )}
         </Card>
       </section>
+
+      {/* Fork Converzon: as notas internas fixadas logo abaixo do contato. */}
+      <NotasInternasDoPainel conversationId={conversation.id} />
 
       {contactId && summaryContactId === contactId && !erro && (
         <AnuncioDoContato contactId={contactId} origem={anuncios.origem} recente={anuncios.recente} />

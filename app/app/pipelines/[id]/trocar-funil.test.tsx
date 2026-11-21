@@ -25,17 +25,23 @@ globalThis.ResizeObserver = class {
  */
 
 const push = vi.fn();
+const replace = vi.fn();
+const estado = vi.hoisted(() => ({
+  agencia: false,
+  query: "",
+  leads: [] as Array<{ id: string; contact_id: string; title: string; tags: string[]; contact_tags?: string[]; created_at: string }>,
+}));
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ replace: vi.fn(), push }),
+  useRouter: () => ({ replace, push }),
   usePathname: () => "/app/pipelines/p-1",
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => new URLSearchParams(estado.query),
 }));
 vi.mock("@/hooks/kanban/useBoard", () => ({
   useBoard: () => ({
     data: {
       pipeline: { id: "p-1", name: "Vendas", vocabulary: null, settings: null },
       stages: [],
-      leads: [],
+      leads: estado.leads,
     },
     isLoading: false,
     error: null,
@@ -49,7 +55,8 @@ vi.mock("@/hooks/kanban/useBulkAction", () => ({
 }));
 vi.mock("@/hooks/auth/AuthProvider", () => ({
   useUser: () => ({ id: "u-1" }),
-  useActiveOrg: () => ({ orgId: "org-1", role: "agent" }),
+  useActiveOrg: () => ({ orgId: "org-1", role: "agent", capacidades_ligadas: estado.agencia ? ["converzon_agencia"] : [] }),
+  useAuth: () => ({ activeOrg: { role: "agent" } }),
   usePermission: () => false,
 }));
 vi.mock("@/hooks/inbox/useAssignableMembers", () => ({
@@ -59,9 +66,10 @@ vi.mock("@/hooks/kanban/useAssignableAgents", () => ({
   useAssignableAgents: () => ({ data: [] }),
 }));
 vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
-vi.mock("@/components/kanban/FilterBar", () => ({ FilterBar: () => null }));
 vi.mock("@/components/kanban/NewLeadDialog", () => ({ NewLeadDialog: () => null }));
-vi.mock("@/components/kanban/KanbanBoard", () => ({ KanbanBoard: () => null }));
+vi.mock("@/components/kanban/KanbanBoard", () => ({
+  KanbanBoard: ({ leads }: { leads: typeof estado.leads }) => <div>{leads.map((lead) => <p key={lead.id}>{lead.title}</p>)}</div>,
+}));
 vi.mock("@/components/kanban/BulkActionBar", () => ({ BulkActionBar: () => null }));
 
 const FUNIS = [
@@ -70,7 +78,13 @@ const FUNIS = [
   { id: "p-3", name: "Parcerias" },
 ];
 
-beforeEach(() => push.mockClear());
+beforeEach(() => {
+  push.mockClear();
+  replace.mockClear();
+  estado.query = "";
+  estado.agencia = false;
+  estado.leads = [];
+});
 
 describe("troca rápida de funil", () => {
   it("com um funil só, mostra o h1 e nenhum seletor", () => {
@@ -125,4 +139,45 @@ describe("troca rápida de funil", () => {
 
     expect(push).not.toHaveBeenCalled();
   });
+});
+
+it("retira o contato marcado do quadro e mostra um card dele na aba Clientes", async () => {
+  estado.agencia = true;
+  estado.leads = [
+    { id: "l-1", contact_id: "c-1", title: "Cliente", tags: [], contact_tags: ["cliente"], created_at: "2026-11-21T12:00:00Z" },
+    { id: "l-2", contact_id: "c-1", title: "Card antigo do cliente", tags: [], contact_tags: ["cliente"], created_at: "2026-11-10T12:00:00Z" },
+    { id: "l-3", contact_id: "c-2", title: "Oportunidade", tags: ["cliente"], created_at: "2026-11-20T12:00:00Z" },
+  ];
+  render(<PipelinePageClient pipelineId="p-1" initialName="Vendas" role="admin" funis={FUNIS.slice(0, 1)} />);
+  expect(screen.getByText("Oportunidade")).toBeTruthy();
+  expect(screen.queryByRole("button", { name: "Cliente" })).toBeNull();
+
+  await userEvent.click(screen.getByRole("button", { name: "Clientes" }));
+  expect(screen.getByRole("button", { name: "Cliente" })).toBeTruthy();
+  expect(screen.queryByText("Card antigo do cliente")).toBeNull();
+  expect(screen.queryByText("Oportunidade")).toBeNull();
+});
+
+it("escolhe o mês inteiro e um dia junto aos filtros do quadro", async () => {
+  estado.agencia = true;
+  estado.leads = [
+    { id: "l-1", contact_id: "c-1", title: "Lead de outubro", tags: [], created_at: "2026-10-21T12:00:00Z" },
+    { id: "l-2", contact_id: "c-2", title: "Lead de novembro", tags: [], created_at: "2026-11-02T12:00:00Z" },
+  ];
+  const tela = <PipelinePageClient pipelineId="p-1" initialName="Vendas" role="admin" funis={FUNIS.slice(0, 1)} />;
+  const { rerender } = render(tela);
+  expect(screen.getByText("Lead de outubro")).toBeTruthy();
+  expect(screen.getByText("Lead de novembro")).toBeTruthy();
+
+  await userEvent.click(screen.getByRole("combobox", { name: "Mês de entrada" }));
+  await userEvent.click(await screen.findByRole("option", { name: "novembro de 2026" }));
+  expect(replace).toHaveBeenLastCalledWith("/app/pipelines/p-1?entrada=2026-11", { scroll: false });
+  estado.query = "entrada=2026-11";
+  rerender(<PipelinePageClient pipelineId="p-1" initialName="Vendas" role="admin" funis={FUNIS.slice(0, 1)} />);
+  expect(screen.queryByText("Lead de outubro")).toBeNull();
+  expect(screen.getByText("Lead de novembro")).toBeTruthy();
+
+  await userEvent.click(screen.getByRole("combobox", { name: "Dia de entrada" }));
+  await userEvent.click(await screen.findByRole("option", { name: /^02$/ }));
+  expect(replace).toHaveBeenLastCalledWith("/app/pipelines/p-1?entrada=2026-11-02", { scroll: false });
 });

@@ -21,8 +21,13 @@
    O `:where()` zera a especificidade do seletor de tema, para que `dark:bg-x`
    e `bg-x` continuem competindo só pela ordem em que aparecem — sem ele, todo
    utilitário `dark:` ganharia um ponto de especificidade a mais e venceria
-   coisas que no v3 ele não vencia. */
-@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+   coisas que no v3 ele não vencia.
+
+   Fork Converzon: a barra lateral (`[data-lado-invertido]`) usa o tema OPOSTO
+   ao da página (app/converzon.css). Então, dentro dela, `dark:` vale quando a
+   página é CLARA, e deixa de valer quando a página é escura. Fora dela, nada
+   muda. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *:not([data-lado-invertido], [data-lado-invertido] *), :root:not([data-theme="dark"]) [data-lado-invertido], :root:not([data-theme="dark"]) [data-lado-invertido] *));
 
 /* ─────────────────────────────────────────────────────────────────────────
    DeskcommCRM — Design System tokens (Sage palette · density Aerada)

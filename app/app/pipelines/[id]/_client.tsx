@@ -3,6 +3,7 @@ import { useCallback, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useT } from "@/hooks/i18n/useT";
 import { useBoard } from "@/hooks/kanban/useBoard";
+import { useActiveOrg } from "@/hooks/auth/AuthProvider";
 
 function formatError(err: unknown, t: (texto: string) => string): string {
   if (err instanceof Error) return err.message;
@@ -21,6 +22,9 @@ function formatError(err: unknown, t: (texto: string) => string): string {
   return String(err);
 }
 import { KanbanBoard } from "@/components/kanban/KanbanBoard";
+import { ClientesDoFunil } from "@/components/kanban/ClientesDoFunil";
+import { ETIQUETA_DE_CLIENTE } from "@/lib/inbox/abas-converzon";
+import { FUSO_PADRAO, fusoValido } from "@/lib/tempo/fusos";
 import { CalendarioDoFunil } from "@/components/kanban/CalendarioDoFunil";
 import { FilterBar } from "@/components/kanban/FilterBar";
 import { BulkActionBar } from "@/components/kanban/BulkActionBar";
@@ -57,19 +61,23 @@ export function PipelinePageClient({
   funis: Array<{ id: string; name: string }>;
 }) {
   const t = useT();
+  const org = useActiveOrg();
+  const temClientes = !!org?.capacidades_ligadas?.includes("converzon_agencia");
+  const fuso = org?.timezone && fusoValido(org.timezone) ? org.timezone : FUSO_PADRAO;
   const { data, isLoading, error, pulses, realtimeStatus, seguranca } = useBoard(pipelineId);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const filters = useMemo(() => filtersFromParams(searchParams), [searchParams]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const setFilters = useCallback(
     (next: LeadFilters) => {
+      setSelectedIds([]);
       const qs = filtersToParams(next);
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
     },
     [router, pathname],
   );
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [newOpen, setNewOpen] = useState(false);
   /**
    * A visão do funil (#2770). Quadro é o padrão — é o que todo mundo já
@@ -78,7 +86,16 @@ export function PipelinePageClient({
    * compartilhável e sobrevive a um refresh), a vista é um olhar momentâneo —
    * e o quadro de volta no mesmo lugar onde ficou é o que se espera ao voltar.
    */
-  const [visao, setVisao] = useState<"quadro" | "calendario">("quadro");
+  const [visaoEscolhida, setVisao] = useState<"quadro" | "calendario" | "clientes">();
+  const leadInicial = searchParams.get("lead");
+  const clienteDoLink = temClientes && leadInicial
+    ? data?.leads.find((lead) => lead.id === leadInicial && lead.contact_tags?.includes(ETIQUETA_DE_CLIENTE))
+    : undefined;
+  const visao = visaoEscolhida ?? (clienteDoLink ? "clientes" : "quadro");
+  const escolherVisao = (vista: typeof visao) => {
+    setSelectedIds([]);
+    setVisao(vista);
+  };
 
   /**
    * Motivo e categoria da perda (#1537): a categoria NÃO vem no lead — ela é
@@ -90,7 +107,19 @@ export function PipelinePageClient({
     const settings = data?.pipeline.settings;
     return (motivo: string) => categoriaDoMotivo(motivo, settings);
   }, [data?.pipeline.settings]);
-  const filteredLeads = data ? applyFilters(data.leads, filters, { categoriaDo }) : [];
+  const leadsDaVisao = useMemo(() => {
+    const leads = data?.leads ?? [];
+    if (!temClientes) return leads;
+    return leads.filter((lead) =>
+      (lead.contact_tags?.includes(ETIQUETA_DE_CLIENTE) === true) === (visao === "clientes"),
+    );
+  }, [data?.leads, temClientes, visao]);
+  const filteredLeads = useMemo(
+    () => applyFilters(leadsDaVisao, filters, { categoriaDo, fuso }),
+    [leadsDaVisao, filters, categoriaDo, fuso],
+  );
+  const idsVisiveis = new Set(filteredLeads.map((lead) => lead.id));
+  const selecaoVisivel = selectedIds.filter((id) => idsVisiveis.has(id));
   // NÃO é a conta do FilterBar: o seletor de filtro lista as três caixas
   // (`marcadoresDoCard`: negócio, contato e conversa), e esta lista, a da tag em
   // lote, só `lead.tags` — é lá que a ação em lote grava (#852). O `useMemo` é o
@@ -210,7 +239,7 @@ export function PipelinePageClient({
               type="button"
               data-testid="visao-quadro"
               aria-pressed={visao === "quadro"}
-              onClick={() => setVisao("quadro")}
+              onClick={() => escolherVisao("quadro")}
               className={cn(
                 "rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors",
                 visao === "quadro"
@@ -224,7 +253,7 @@ export function PipelinePageClient({
               type="button"
               data-testid="visao-calendario"
               aria-pressed={visao === "calendario"}
-              onClick={() => setVisao("calendario")}
+              onClick={() => escolherVisao("calendario")}
               className={cn(
                 "rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors",
                 visao === "calendario"
@@ -234,6 +263,21 @@ export function PipelinePageClient({
             >
               {t("Calendário")}
             </button>
+            {temClientes && (
+              <button
+                type="button"
+                aria-pressed={visao === "clientes"}
+                onClick={() => escolherVisao("clientes")}
+                className={cn(
+                  "rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors",
+                  visao === "clientes"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {t("Clientes")}
+              </button>
+            )}
           </div>
           <Button onClick={() => setNewOpen(true)} disabled={!data} className="shrink-0">
             <Plus size={16} className="mr-2" /> {t("Novo Lead")}
@@ -254,8 +298,9 @@ export function PipelinePageClient({
       <FilterBar
         filters={filters}
         onChange={setFilters}
-        leads={data?.leads ?? []}
+        leads={leadsDaVisao}
         settings={data?.pipeline.settings}
+        fuso={temClientes ? fuso : undefined}
       />
       {error ? (
         <div className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm">
@@ -265,6 +310,13 @@ export function PipelinePageClient({
         <div className="flex flex-1 animate-pulse items-center justify-center text-muted-foreground">
           {t("Carregando…")}
         </div>
+      ) : visao === "clientes" ? (
+        <ClientesDoFunil
+          pipelineId={pipelineId}
+          stages={data.stages}
+          leads={filteredLeads}
+          leadDoLink={clienteDoLink}
+        />
       ) : visao === "calendario" ? (
         // A MESMA lista filtrada do quadro: as duas abas olham o mesmo funil,
         // e discordar sobre quem está nele seria pior do que não ter filtro.
@@ -281,14 +333,14 @@ export function PipelinePageClient({
           leads={filteredLeads}
           pulses={pulses}
           pipeline={data.pipeline}
-          selectedIds={selectedIds}
+          selectedIds={selecaoVisivel}
           onSelectionChange={setSelectedIds}
-          leadInicial={searchParams.get("lead")}
+          leadInicial={leadInicial}
           podeRenomearEtapa={ROLE_RANK[role] >= ROLE_RANK.manager}
         />
       )}
       <BulkActionBar
-        selectedIds={selectedIds}
+        selectedIds={selecaoVisivel}
         stages={data?.stages ?? []}
         pipelineId={pipelineId}
         vocabulary={data?.pipeline.vocabulary ?? null}

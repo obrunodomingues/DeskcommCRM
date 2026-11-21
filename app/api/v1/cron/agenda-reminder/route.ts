@@ -143,6 +143,7 @@ import { tagDeIdioma } from "@/lib/i18n/datas";
 import { traduzir } from "@/lib/i18n/dicionario";
 import { IDIOMA_PADRAO, normalizarIdioma, type Idioma } from "@/lib/i18n/idiomas";
 import { nomeDoContato } from "@/lib/contacts/rotulo-do-contato";
+import { meetVideoUrl } from "@/lib/agenda/google/meet";
 import { logger } from "@/lib/logger";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolverRemetenteDoLembrete } from "@/lib/agenda/remetente-do-lembrete";
@@ -192,6 +193,9 @@ interface CompromissoAVencer {
    */
   starts_at_marked_at: string | null;
   location_details: string | null;
+  /** Fork Converzon: o link do Meet, para `{{link}}` no lembrete da teleconsulta. */
+  meeting_url?: string | null;
+  meeting_state?: string | null;
   reminder_sent_offsets_minutes: number[] | null;
   /**
    * `reminder_sent_at` — instante do ÚLTIMO carimbo de envio (#2243): a
@@ -219,7 +223,8 @@ function tipoDe(linha: CompromissoAVencer): TipoDoCompromisso | null {
  * Sem molde, sai a frase abaixo — o quê, quando e onde. Com molde, as
  * variáveis `{{nome}}`, `{{primeiro_nome}}`, `{{titulo}}`, `{{tipo}}`,
  * `{{dia}}`, `{{hora}}`, `{{endereco}}` e `{{quando}}` são preenchidas com
- * os mesmos dados; chave desconhecida fica no texto, para quem digitou
+ * os mesmos dados (e `{{link}}`, o link do Meet quando ele já está pronto —
+ * fork Converzon); chave desconhecida fica no texto, para quem digitou
  * `{{foo}}` ver o erro em vez de uma mensagem manca.
  *
  * `reminder_body` / `reminder_bodies` do tipo vencem por degrau; senão
@@ -257,6 +262,8 @@ export function montarLembrete(input: {
   molde?: string | null;
   /** Nome do tipo de atendimento, para `{{tipo}}`. Cai no título se faltar. */
   tipoNome?: string | null;
+  /** Fork Converzon: link do Meet pronto, para `{{link}}`. Sem link, vazio. */
+  link?: string | null;
 }): string {
   const idioma = input.idioma ?? IDIOMA_PADRAO;
   const t = (texto: string) => traduzir(texto, idioma);
@@ -285,6 +292,7 @@ export function montarLembrete(input: {
     hora,
     endereco: input.local?.trim() ?? "",
     quando: `${dia} ${t("às")} ${hora}`,
+    link: input.link ?? "",
   };
 
   const molde = input.molde?.trim();
@@ -536,7 +544,7 @@ async function handle(req: NextRequest): Promise<Response> {
   const { data, error } = await admin
     .from("calendar_appointments")
     .select(
-      "id, organization_id, contact_id, conversation_id, title, starts_at, created_at, starts_at_marked_at, location_details, reminder_sent_offsets_minutes, reminder_sent_at, " +
+      "id, organization_id, contact_id, conversation_id, title, starts_at, created_at, starts_at_marked_at, location_details, meeting_url, meeting_state, reminder_sent_offsets_minutes, reminder_sent_at, " +
         "calendar_event_types!inner(name, reminder_channel_session_id, reminder_enabled, reminder_minutes_before, reminder_extra_offsets_minutes, reminder_template_name, reminder_body, reminder_bodies, location_details), organizations:organization_id!inner(status)",
     )
     .eq("status", "confirmed")
@@ -703,6 +711,7 @@ async function handle(req: NextRequest): Promise<Response> {
       idioma: normalizarIdioma(organizacao?.locale),
       molde,
       tipoNome: tipo.name,
+      link: linha.meeting_state === "ready" ? meetVideoUrl(linha.meeting_url) : null,
     });
 
     // ─── O CARIMBO ANTES DO ENVIO (issue #2223) ────────────────────────────

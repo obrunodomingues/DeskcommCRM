@@ -729,7 +729,7 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
           <div className="mb-1 flex items-start gap-2 rounded-md border-l-2 border-primary bg-muted/60 px-2 py-1.5">
             <div className="min-w-0 flex-1">
               <div className="text-[11px] font-medium text-primary">
-                {respondendo.direction === "outbound" ? t("Você") : t("Cliente")}
+                {respondendo.direction === "outbound" ? t("CRM") : t("Cliente")}
               </div>
               <div className="line-clamp-2 text-xs text-muted-foreground">
                 {respondendo.type === "contact"

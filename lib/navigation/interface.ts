@@ -25,6 +25,9 @@ const SIMPLIFICADA: readonly NavDestinationId[] = [
   "/app/kanban",
   "/app/contacts",
   "/app/tasks",
+  // Fork Converzon: Projetos (só numa agência) é quem ocupa o menu lateral no
+  // lugar de Tarefas, que segue aqui como porta do hub.
+  "/app/projetos",
   "/app/connections",
 ];
 /** Portas pessoais e recuperação administrativa não são removíveis. Atualização
@@ -159,6 +162,8 @@ export function interfaceTemDestino(
 export function homeDaInterface(raw: unknown, platform: boolean, role: Role | null): string {
   const visible = destinosDaInterface(raw, platform, role);
   return (
+    // Fork Converzon: o resumo do dia abre primeiro, para quem o tem no menu.
+    visible.find((d) => d.href === "/app/inicio")?.href ??
     visible.find((d) => d.href === "/app/inbox")?.href ??
     visible.find((d) => !essencial(d, role, platform))?.href ??
     "/app/settings/profile"

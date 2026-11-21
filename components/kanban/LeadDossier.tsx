@@ -19,6 +19,7 @@ import { TarefasDoNegocio } from "./TarefasDoNegocio";
 import { OwnerBadge } from "./OwnerBadge";
 import { resolveLeadOwner } from "@/lib/kanban/owner";
 import { formatValorDoNegocio, MOEDA_PADRAO } from "@/lib/money";
+import { respostasDeclaradas } from "@/lib/converzon/primeiro-atendimento";
 import type { CustomFieldDef } from "@/components/contacts/CustomFieldsEditor";
 
 interface Props {
@@ -70,6 +71,9 @@ export function LeadDossier({
   // esta é a primeira, no padrão já estabelecido do kanban.
   const user = useUser();
   const activeOrg = useActiveOrg();
+  const respostas = activeOrg?.capacidades_ligadas?.includes("converzon_agencia")
+    ? respostasDeclaradas(lead.custom_fields)
+    : [];
   const podeCriarProposta =
     user.is_platform_admin || (activeOrg && ROLE_RANK[activeOrg.role] >= ROLE_RANK.manager) || false;
   // Tarefas são `agent`+, a mesma régua da tela de Tarefas e da rota — e o
@@ -159,6 +163,22 @@ export function LeadDossier({
             leadId={lead.id}
           />
         </section>
+
+        {respostas.length > 0 && (
+          <section className="border-b border-border py-3" aria-label={t("Respostas declaradas")}>
+            <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-text-muted">
+              {t("Respostas declaradas")}
+            </h3>
+            <dl className="divide-y divide-border rounded-lg border border-border bg-muted/30">
+              {respostas.map(({ key, label, value }) => (
+                <div key={key} className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-3 px-3 py-2 text-sm">
+                  <dt className="text-text-muted">{label}</dt>
+                  <dd className="min-w-0 break-words font-medium text-text">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        )}
 
         {/* As tarefas ANTES da linha do tempo: a timeline conta o que já
             aconteceu, a tarefa é o que ainda falta fazer — e quem abre o card

@@ -77,6 +77,8 @@ export function GavetaDeNavegacao({ comoAba = false }: { comoAba?: boolean }) {
       </SheetTrigger>
       <SheetContent
         side="left"
+        // Fork Converzon: a mesma barra invertida da tela grande (app/converzon.css).
+        data-lado-invertido=""
         className="flex w-72 max-w-[calc(100vw-2rem)] flex-col gap-0 p-0 sm:max-w-xs"
       >
         <SheetTitle className="sr-only">{t("Navegação principal")}</SheetTitle>

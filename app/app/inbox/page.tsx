@@ -9,7 +9,8 @@ import { createClient } from "@/lib/supabase/server";
 import { lerRascunho, type AvisoDeRascunho } from "@/lib/inbox/rascunho-sugerido";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Inbox" };
+// Fork Converzon: o título da aba do navegador acompanha o menu ("WhatsApp").
+export const metadata: Metadata = { title: "WhatsApp" };
 
 export default async function InboxPage({
   searchParams,

@@ -93,6 +93,12 @@ const CONGELADAS: Record<string, { degradacao: string; porque: string }> = {
       "faz o `update` cru em `lgpd_requests` com o filtro de organização na query. " +
       "A chamada é opcional por desenho — o gate não força a criação dela.",
   },
+  converzon_apagar_contato_completo: {
+    degradacao: "app/api/v1/converzon/contatos/[id]/apagar/route.ts:45",
+    porque:
+      "Fork Converzon: a função vem de converzon/sql/0003, aplicada à mão antes da imagem " +
+      "(o fork não mexe nas migrations do produto). Sem ela, a rota devolve erro e nada é apagado.",
+  },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

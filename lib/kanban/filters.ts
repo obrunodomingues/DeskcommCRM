@@ -1,3 +1,5 @@
+import { diaLocalISO } from "@/lib/agenda/fuso";
+import { diaDe } from "@/lib/kanban/calendario-do-funil";
 import type { Lead } from "@/lib/types/leads";
 import { diaDeHojeLocal } from "@/lib/ai/pacing-knobs";
 import { cardTemMarcador, cardTemTodasNaMesmaCaixa } from "@/lib/kanban/marcadores-do-card";
@@ -39,6 +41,8 @@ export interface LeadFilters {
   /** E ou OU entre as etiquetas escolhidas (#1274). `e` é o padrão. */
   tagMode?: ModoDeEtiqueta;
   search?: string;
+  /** Mês (AAAA-MM) ou dia (AAAA-MM-DD) de criação no fuso da organização. */
+  periodoDeEntrada?: string;
   /**
    * Limite de valor mínimo/máximo, em centavos (#1531).
    *
@@ -98,6 +102,17 @@ export function primeiroMarcador(tag: LeadFilters["tag"]): string | undefined {
  * O `modo` só sai quando é `ou` — `e` é o padrão, e um `?tag=vip` de hoje não
  * ganha um `&modo=e` colado nele.
  */
+function periodoValido(valor: string | null | undefined): string | undefined {
+  if (!valor) return undefined;
+  const dia = /^\d{4}-\d{2}$/.test(valor) ? valor + "-01" : valor;
+  return /^\d{4}-\d{2}-\d{2}$/.test(dia) && diaDe(dia) ? valor : undefined;
+}
+
+export function diaDaEntrada(criadoEm: string, fuso: string): string {
+  const instante = new Date(criadoEm);
+  return Number.isNaN(instante.getTime()) ? "" : diaLocalISO(instante, fuso);
+}
+
 export function filtersFromParams(
   sp: { get(key: string): string | null; getAll?: (key: string) => string[] },
 ): LeadFilters {
@@ -123,6 +138,7 @@ export function filtersFromParams(
     // colado à mão.
     ...(modoDeEtiqueta(modo) ? { tagMode: modoDeEtiqueta(modo) } : {}),
     search: search ?? undefined,
+    periodoDeEntrada: periodoValido(sp.get("entrada")),
     overdueOnly: sp.get("overdue") === "1" || undefined,
     lostReason: sp.get("motivo") ?? undefined,
     lostCategory: sp.get("categoria") ?? undefined,
@@ -138,6 +154,8 @@ export function filtersToParams(f: LeadFilters): string {
   for (const marcador of marcadoresDoFiltro(f.tag)) p.append("tag", marcador);
   if (f.tagMode === "ou") p.set("modo", "ou");
   if (f.search?.trim()) p.set("q", f.search.trim());
+  const periodo = periodoValido(f.periodoDeEntrada);
+  if (periodo) p.set("entrada", periodo);
   if (f.overdueOnly) p.set("overdue", "1");
   if (f.lostReason) p.set("motivo", f.lostReason);
   if (f.lostCategory) p.set("categoria", f.lostCategory);
@@ -152,6 +170,7 @@ export function filtersToParams(f: LeadFilters): string {
  */
 export interface ContextoDosFiltros {
   categoriaDo?: (motivo: string) => string | undefined;
+  fuso?: string;
 }
 
 export function applyFilters(
@@ -187,7 +206,10 @@ export function applyFilters(
     return cardTemTodasNaMesmaCaixa(lead, marcadores);
   };
 
+  const periodo = periodoValido(f.periodoDeEntrada);
+  const fuso = contexto?.fuso ?? "America/Sao_Paulo";
   return leads.filter((l) => {
+    if (periodo && !diaDaEntrada(l.created_at, fuso).startsWith(periodo)) return false;
     // "Sem responsável" é sem dono NENHUM — lead de dono agente tem dono.
     if (
       f.owner === "unassigned" &&

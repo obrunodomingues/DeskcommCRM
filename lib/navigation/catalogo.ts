@@ -64,6 +64,12 @@ export interface NavMetadata {
    * ⌘K. Apresentação, como `modulo`: quem recusa é a tela e a rota.
    */
   capacidade?: CapacidadeDaOrganizacao;
+  /**
+   * Fork Converzon: com `sidebar: true`, a porta SAI do menu lateral quando a
+   * organização tem esta capacidade (continua no hub e na busca). É o caso de
+   * Tarefas: no consultório fica na barra; na agência o lugar é de Projetos.
+   */
+  saiDoMenuCom?: CapacidadeDaOrganizacao;
 }
 
 /**
@@ -167,10 +173,24 @@ export const NAV_CATALOG = [
   },
   // ---- Atendimento — onde o operador passa o dia ----
   {
+    // Fork Converzon: o resumo do dia numa tela só — mensagens esperando,
+    // consultas, pacientes novos, funil e site. É a tela que abre ao entrar
+    // (`homeDaInterface`). Sem `minRole`: cada número é lido com a sessão de
+    // quem abre, e os do site só aparecem para gerente.
+    href: "/app/inicio",
+    label: "Início",
+    description: "O resumo do dia: mensagens esperando, próximas consultas, pacientes novos, funil e site.",
+    icon: "House",
+    group: "atendimento",
+    sidebar: true,
+  },
+  {
     href: "/app/inbox",
-    label: "Inbox",
+    // Fork Converzon: o consultório só atende por WhatsApp — o nome e o ícone
+    // dizem isso, em vez do "Inbox" genérico.
+    label: "WhatsApp",
     description: "As conversas de WhatsApp, com você e a IA atendendo lado a lado.",
-    icon: "Inbox",
+    icon: "WhatsappLogo",
     group: "atendimento",
     sidebar: true,
     // Quantas conversas a IA passou para a equipe e esperam uma pessoa (aba Fila).
@@ -284,11 +304,28 @@ export const NAV_CATALOG = [
     modulo: "crm_b2b",
   },
   {
-    // Extraída do PR #418 (@clinicacentrodosorrisosc-code). Fica no CRM e no
-    // sidebar porque é tela de USO DIÁRIO — quem atende abre para ver o que
-    // vence hoje, do mesmo jeito que abre o Inbox. Sem `minRole`: `viewer` VÊ
-    // o que o time combinou (é informação de operação), e a criação é cobrada
-    // pela rota, com `requireRole("agent")`.
+    // Fork Converzon: a execução de cada serviço vendido (fases, checklist,
+    // notas e histórico), só numa instalação de agência — a capacidade
+    // `converzon_agencia` é posta pelo layout quando CONVERZON_PERFIL=agencia.
+    // Ocupa no menu lateral o lugar de Tarefas: o pedido foi juntar projetos e
+    // tarefas numa aba só, e o teto de 15 itens da dobra a 1280x900 não cabe
+    // os dois.
+    href: "/app/projetos",
+    label: "Projetos",
+    description: "A execução de cada serviço vendido, do briefing à entrega, com checklist e prazos.",
+    icon: "ClipboardText",
+    group: "crm",
+    section: "O dia a dia da venda",
+    capacidade: "converzon_agencia",
+    sidebar: true,
+  },
+  {
+    // Extraída do PR #418 (@clinicacentrodosorrisosc-code). Fica no CRM porque
+    // é tela de USO DIÁRIO — quem atende abre para ver o que vence hoje. Sem
+    // `minRole`: `viewer` VÊ o que o time combinou (é informação de operação),
+    // e a criação é cobrada pela rota, com `requireRole("agent")`.
+    // Fork Converzon: na AGÊNCIA sai do menu lateral (o lugar é de Projetos) e
+    // continua no hub do CRM e na busca; no consultório fica na barra.
     href: "/app/tasks",
     label: "Tarefas",
     description: "O que ficou combinado, com prazo — e o que já venceu sem ninguém fazer.",
@@ -296,6 +333,7 @@ export const NAV_CATALOG = [
     group: "crm",
     section: "O dia a dia da venda",
     sidebar: true,
+    saiDoMenuCom: "converzon_agencia",
   },
   {
     // A porta dos planos de tarefa (#1752): montar a sequência UMA vez e o
@@ -828,6 +866,20 @@ export const NAV_CATALOG = [
     // pessoa — orçamento e criativo são da empresa inteira. Mesmo grau dos
     // outros dois vizinhos do grupo.
     minRole: "manager",
+    // Fork Converzon: sai do menu lateral (continua em "Ver tudo em Análise")
+    // para "Início" caber no teto de 15 itens da dobra a 1280x900.
+  },
+  {
+    // Fork Converzon: o Google Analytics do site, com gráficos, perto de Meta
+    // Ads — o que trouxe a pessoa ao site e o que ela fez lá. Mesmo `manager`
+    // dos vizinhos: os números são da empresa inteira.
+    href: "/app/metricas-do-site",
+    label: "Métricas do site",
+    description: "Visitas, origens, páginas e contatos do site pelo Google Analytics, com gráficos.",
+    icon: "Globe",
+    group: "analise",
+    section: "Os números do período",
+    minRole: "manager",
     sidebar: true,
   },
   {
@@ -843,7 +895,8 @@ export const NAV_CATALOG = [
     icon: "ClockCounterClockwise",
     group: "analise",
     section: "Os números do período",
-    sidebar: true,
+    // Fork Converzon: sai do menu lateral (continua em "Ver tudo em Análise")
+    // para "Métricas do site" caber no teto de 15 itens da dobra a 1280x900.
   },
   {
     // Observabilidade, não configuração: por isso não fica junto dos agentes.

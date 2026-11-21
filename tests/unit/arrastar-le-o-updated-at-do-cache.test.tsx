@@ -351,10 +351,14 @@ function nenhumEmpateNaEtapa(funil: BoardData, stageId: string, pos: number): vo
 }
 
 describe("soltar com o filtro ligado não empata a posição com o card escondido", () => {
-  it("no fim de outra etapa: grava 1500, não a 2000 do card B escondido", async () => {
+  it("em outra etapa: grava depois do último card da etapa INTEIRA (4000), sem empatar com o escondido", async () => {
     // Etapa s-1 com A(1000, quente), B(2000) e C(3000); o filtro de tag deixa só
     // A. Soltar D no fim da coluna visível dava midpoint(1000, null) = 2000,
     // que é a posição do B — o empate que a issue relata.
+    //
+    // Fork Converzon: a coluna ordena por chegada (lib/kanban/ordem-da-coluna.ts),
+    // então a posição gravada é o fim da etapa inteira — MAX(3000, do C escondido)
+    // + 1000 — e continua não empatando com ninguém.
     const funil = funilInteiro([
       card(A_VISIVEL, "s-1", 1000, ["quente"]),
       card(OCULTO_B, "s-1", 2000),
@@ -378,16 +382,17 @@ describe("soltar com o filtro ligado não empata a posição com o card escondid
     });
 
     nenhumEmpateNaEtapa(funil, "s-1", posicaoGravada());
-    expect(posicaoGravada()).toBe(1500);
+    expect(posicaoGravada()).toBe(4000);
     expect(post).toHaveBeenCalledWith(
       `/api/v1/leads/${D_SOLTO}/move`,
-      expect.objectContaining({ stage_id: "s-1", position_in_stage: 1500 }),
+      expect.objectContaining({ stage_id: "s-1", position_in_stage: 4000 }),
     );
   });
 
-  it("reordenando na mesma etapa até o fim: grava 2500, não a 3000 do card C escondido", async () => {
-    // Visíveis A(1000) e B(2000), escondido C(3000). Arrastar A para baixo do B
-    // dava midpoint(2000, null) = 3000 — a posição do C.
+  it("reordenar na MESMA etapa não grava nada (fork Converzon: a ordem é por chegada)", async () => {
+    // Visíveis A(1000) e B(2000), escondido C(3000). No upstream, arrastar A para
+    // baixo do B gravava uma posição nova; no fork a coluna sai por chegada, então
+    // o arrasto dentro da coluna é ignorado — nenhuma escrita.
     const funil = funilInteiro([
       card(A_VISIVEL, "s-1", 1000, ["quente"]),
       card(OCULTO_B, "s-1", 2000),
@@ -406,8 +411,7 @@ describe("soltar com o filtro ligado não empata a posição com o card escondid
       mode: "FLUID",
     });
 
-    nenhumEmpateNaEtapa(funil, "s-1", posicaoGravada());
-    expect(posicaoGravada()).toBe(2500);
+    expect(post).not.toHaveBeenCalled();
   });
 
   it("sem nenhum card escondido a posição é a de sempre (o controle que não pode mudar)", async () => {
