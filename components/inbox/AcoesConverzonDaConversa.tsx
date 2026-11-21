@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { showApiError } from "@/components/feedback/ApiErrorToast";
@@ -38,12 +38,14 @@ export function AcoesConverzonDaConversa({
   nomeDoContato,
   clienteFalouPorUltimo,
   encerrada,
+  whatsappIndividual,
 }: {
   conversationId: string;
   contactId: string | null;
   nomeDoContato: string;
   clienteFalouPorUltimo: boolean;
   encerrada: boolean;
+  whatsappIndividual: boolean;
 }) {
   const t = useT();
   const router = useRouter();
@@ -51,11 +53,34 @@ export function AcoesConverzonDaConversa({
   const { activeOrg } = useAuth();
   const [confirmarApagar, setConfirmarApagar] = useState(false);
   const podeApagar = !!contactId && roleAtLeast(activeOrg?.role, "manager");
+  const primeiroAtendimentoUrl = "/api/v1/converzon/conversas/" + conversationId + "/primeiro-atendimento";
+  const chaveDoPrimeiroAtendimento = ["converzon-primeiro-atendimento", conversationId];
+  const podeConsultarPrimeiroAtendimento =
+    !!contactId && !encerrada && whatsappIndividual && roleAtLeast(activeOrg?.role, "agent") &&
+    !!activeOrg?.capacidades_ligadas?.includes("converzon_agencia");
+  const primeiroAtendimento = useQuery({
+    queryKey: chaveDoPrimeiroAtendimento,
+    queryFn: () => apiClient.get<{ data: { podeEnviar: boolean } }>(primeiroAtendimentoUrl),
+    enabled: podeConsultarPrimeiroAtendimento,
+    retry: false,
+    staleTime: 0,
+  });
 
   const atualizarListas = () => {
     qc.invalidateQueries({ queryKey: ["conversations"] });
     qc.invalidateQueries({ queryKey: ["conversation-counts"] });
   };
+
+  const enviarPrimeiroAtendimento = useMutation({
+    mutationFn: () => apiClient.post(primeiroAtendimentoUrl, {}),
+    onError: showApiError,
+    onSuccess: () => toast.success(t("Primeiro atendimento enviado.")),
+    onSettled: () => {
+      atualizarListas();
+      void qc.invalidateQueries({ queryKey: ["messages", conversationId] });
+      void qc.invalidateQueries({ queryKey: chaveDoPrimeiroAtendimento });
+    },
+  });
 
   const dispensar = useMutation({
     mutationFn: () => apiClient.post(`/api/v1/converzon/conversas/${conversationId}/nao-precisa-responder`, {}),
@@ -80,6 +105,18 @@ export function AcoesConverzonDaConversa({
 
   return (
     <>
+      {podeConsultarPrimeiroAtendimento &&
+        (primeiroAtendimento.data?.data.podeEnviar || enviarPrimeiroAtendimento.isPending) && (
+          <Button
+            size="sm"
+            variant="outline"
+            data-testid="enviar-primeiro-atendimento"
+            disabled={enviarPrimeiroAtendimento.isPending}
+            onClick={() => enviarPrimeiroAtendimento.mutate()}
+          >
+            {t(enviarPrimeiroAtendimento.isPending ? "Enviando 1º atendimento…" : "Enviar 1º atendimento")}
+          </Button>
+        )}
       {clienteFalouPorUltimo && !encerrada && (
         <Button
           size="sm"

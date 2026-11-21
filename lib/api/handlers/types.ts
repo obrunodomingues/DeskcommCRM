@@ -72,6 +72,8 @@ export type Actor =
   | { type: "webhook_source"; id: string; textoEscritoPelaIA?: true };
 
 export interface HandlerCtx {
+  /** Abordagem iniciada pelo operador que já prepara a continuação pela IA. */
+  primeiroAtendimentoConverzon?: boolean;
   prospectingDelivery?: ProspectingDelivery;
   agentOperation?: AgentOperationContext;
   meetingDelivery?: MeetingDeliveryContext;

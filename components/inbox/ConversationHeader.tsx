@@ -494,6 +494,7 @@ export function ConversationHeader({
               Date.parse(conversation.last_inbound_at) > Date.parse(conversation.last_outbound_at))
           }
           encerrada={encerrada}
+          whatsappIndividual={conversation.channel === "whatsapp" && !conversation.is_group}
         />
         {!encerrada && (
           <Button
