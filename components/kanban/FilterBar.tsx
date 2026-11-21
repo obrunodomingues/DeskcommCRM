@@ -1,6 +1,14 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useState } from "react";
 import { useT } from "@/hooks/i18n/useT";
+import { useTagDeIdioma } from "@/hooks/i18n/useLocaleDeData";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +31,7 @@ import { marcadoresDoCard } from "@/lib/kanban/marcadores-do-card";
 import { OwnerBadge } from "./OwnerBadge";
 import {
   agentOwnerFilter,
+  diaDaEntrada,
   marcadoresDoFiltro,
   parseAgentOwnerFilter,
   type LeadFilters,
@@ -41,6 +50,7 @@ interface FilterBarProps {
    * de categoria não teria o que oferecer.
    */
   settings?: Record<string, unknown>;
+  fuso?: string;
 }
 
 const STATUS_OPTIONS: Array<{ value: NonNullable<LeadFilters["status"]>; label: string }> = [
@@ -50,22 +60,21 @@ const STATUS_OPTIONS: Array<{ value: NonNullable<LeadFilters["status"]>; label: 
   { value: "lost", label: "Perdidos" },
 ];
 
-export function FilterBar({ filters, onChange, leads, settings }: FilterBarProps) {
+export function FilterBar({ filters, onChange, leads, settings, fuso }: FilterBarProps) {
   const t = useT();
+  const idioma = useTagDeIdioma();
   const user = useUser();
   const { data: members } = useAssignableMembers(true);
   const { data: agents } = useAssignableAgents(true);
   const [searchInput, setSearchInput] = useState(filters.search ?? "");
 
-  // Debounce search 250ms
+  const aplicarBusca = useEffectEvent((busca: string) => {
+    const search = busca.trim();
+    if ((filters.search ?? "") !== search) onChange({ ...filters, search });
+  });
   useEffect(() => {
-    const t = setTimeout(() => {
-      if ((filters.search ?? "") !== searchInput) {
-        onChange({ ...filters, search: searchInput });
-      }
-    }, 250);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const timer = setTimeout(() => aplicarBusca(searchInput), 250);
+    return () => clearTimeout(timer);
   }, [searchInput]);
 
   /**
@@ -81,6 +90,19 @@ export function FilterBar({ filters, onChange, leads, settings }: FilterBarProps
     for (const l of leads) for (const t of marcadoresDoCard(l)) set.add(t);
     return Array.from(set).sort();
   }, [leads]);
+
+  const mesEscolhido = filters.periodoDeEntrada?.slice(0, 7);
+  const diaEscolhido = filters.periodoDeEntrada?.slice(8);
+  const meses = useMemo(() => {
+    if (!fuso) return [];
+    const entradas = leads.map((lead) => diaDaEntrada(lead.created_at, fuso).slice(0, 7));
+    const hoje = diaDaEntrada(new Date().toISOString(), fuso).slice(0, 7);
+    return [...new Set([...entradas, hoje, mesEscolhido])].filter((mes): mes is string => !!mes).sort().reverse();
+  }, [leads, fuso, mesEscolhido]);
+  const rotuloDoMes = new Intl.DateTimeFormat(idioma, { month: "long", year: "numeric", timeZone: "UTC" });
+  const totalDeDias = mesEscolhido
+    ? new Date(Date.UTC(Number(mesEscolhido.slice(0, 4)), Number(mesEscolhido.slice(5)), 0)).getUTCDate()
+    : 0;
 
   const filteredAgentId = parseAgentOwnerFilter(filters.owner);
 
@@ -364,6 +386,45 @@ export function FilterBar({ filters, onChange, leads, settings }: FilterBarProps
         </DropdownMenuContent>
       </DropdownMenu>
 
+      {fuso && (
+        <>
+          <Select
+            value={mesEscolhido ?? "todos"}
+            onValueChange={(mes) => onChange({ ...filters, periodoDeEntrada: mes === "todos" ? undefined : mes })}
+          >
+            <SelectTrigger aria-label={t("Mês de entrada")} className="h-8 w-auto min-w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">{t("Todos os meses")}</SelectItem>
+              {meses.map((mes) => (
+                <SelectItem key={mes} value={mes}>{rotuloDoMes.format(new Date(mes + "-01T00:00:00Z"))}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {mesEscolhido && (
+            <Select
+              value={diaEscolhido || "todos"}
+              onValueChange={(dia) => onChange({
+                ...filters,
+                periodoDeEntrada: dia === "todos" ? mesEscolhido : mesEscolhido + "-" + dia,
+              })}
+            >
+              <SelectTrigger aria-label={t("Dia de entrada")} className="h-8 w-auto min-w-28">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">{t("Todos os dias")}</SelectItem>
+                {Array.from({ length: totalDeDias }, (_, index) => {
+                  const dia = String(index + 1).padStart(2, "0");
+                  return <SelectItem key={dia} value={dia}>{dia}</SelectItem>;
+                })}
+              </SelectContent>
+            </Select>
+          )}
+        </>
+      )}
+
       <label
         className={cn(
           "flex cursor-pointer select-none items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm",
@@ -381,6 +442,7 @@ export function FilterBar({ filters, onChange, leads, settings }: FilterBarProps
       {(filters.search ||
         filters.owner ||
         marcadoresEscolhidos.length > 0 ||
+        filters.periodoDeEntrada ||
         filters.overdueOnly ||
         filters.lostReason ||
         filters.lostCategory ||

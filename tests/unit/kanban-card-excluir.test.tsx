@@ -12,7 +12,7 @@ import type { Lead } from "@/lib/types/leads";
  * apareciam (os dois só ficavam visíveis no hover).
  */
 
-const estado = vi.hoisted(() => ({ podeMover: true }));
+const estado = vi.hoisted(() => ({ podeMover: true, agencia: false }));
 const post = vi.hoisted(() => vi.fn());
 const get = vi.hoisted(() => vi.fn());
 /**
@@ -27,6 +27,7 @@ const permissao = vi.hoisted(() => vi.fn((_chave: string) => true));
 vi.mock("@/lib/api/client", () => ({ apiClient: { post, get, patch: vi.fn() } }));
 vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn(), warning: vi.fn() } }));
 vi.mock("@/hooks/auth/AuthProvider", () => ({
+  useActiveOrg: () => ({ role: "manager", capacidades_ligadas: estado.agencia ? ["converzon_agencia"] : [] }),
   usePermission: (chave: string) => permissao(chave),
 }));
 vi.mock("@/hooks/kanban/useUpdateLead", () => ({
@@ -43,6 +44,7 @@ vi.mock("@/components/kanban/EditLeadDialog", () => ({ EditLeadDialog: () => nul
 
 const LEAD = {
   id: "l-1",
+  contact_id: "c-1",
   title: "Proposta da ACME",
   owner_user_id: null,
   owner_agent_id: null,
@@ -70,6 +72,7 @@ function renderMenu() {
 
 beforeEach(() => {
   estado.podeMover = true;
+  estado.agencia = false;
   permissao.mockReset();
   // A chave ENTRA na conta do dublê, e não só numa asserção. Medido na triagem:
   // com `mockImplementation(() => estado.podeMover)` — que ignora o argumento —
@@ -240,4 +243,16 @@ describe("menu do card — Excluir", () => {
     // pousa num botão invisível, que só aparece depois que o menu abre.
     expect(botao.className).toContain("focus-visible:opacity-100");
   });
+});
+
+it("marca o contato pelo menu somente após confirmar", async () => {
+  estado.agencia = true;
+  const user = userEvent.setup();
+  renderMenu();
+  await user.click(screen.getByRole("button", { name: "Ações do lead" }));
+  await user.click(screen.getByRole("menuitem", { name: "Marcar como cliente" }));
+  expect(post).not.toHaveBeenCalled();
+  await user.click(screen.getByRole("button", { name: "Marcar como cliente" }));
+  await waitFor(() => expect(post).toHaveBeenCalledWith("/api/v1/converzon/clientes/c-1", {}));
+  expect(abrirDossie).not.toHaveBeenCalled();
 });

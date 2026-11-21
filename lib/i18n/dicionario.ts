@@ -1528,6 +1528,14 @@ export const DICIONARIO: Traducoes = {
   // Fork Converzon — a marca de cliente (components/inbox/MarcarComoCliente.tsx e
   // app/api/v1/converzon/clientes/[id]). "Clientes", o nome da aba, já existia.
   "Marcar como cliente": { es: "Marcar como cliente" },
+  "Mês de entrada": { es: "Mes de entrada" },
+  "Dia de entrada": { es: "Día de entrada" },
+  "Todos os meses": { es: "Todos los meses" },
+  "Todos os dias": { es: "Todos los días" },
+  "Nenhum cliente neste funil.": { es: "No hay clientes en este embudo." },
+  "As conversas dele vão para Clientes, os cards saem do quadro comercial e o atendimento pelo WhatsApp passa a ser da equipe.": {
+    es: "Sus conversaciones pasan a Clientes, las tarjetas salen del tablero comercial y el equipo se encarga de la atención por WhatsApp.",
+  },
   "Desmarcar cliente": { es: "Desmarcar cliente" },
   Desmarcar: { es: "Desmarcar" },
   "Marcar este contato como cliente?": { es: "¿Marcar este contacto como cliente?" },

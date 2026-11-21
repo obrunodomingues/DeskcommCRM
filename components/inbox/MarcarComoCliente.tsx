@@ -42,9 +42,51 @@ export function MarcarComoCliente({
 }) {
   const t = useT();
   const { activeOrg } = useAuth();
-  const qc = useQueryClient();
   const [confirmar, setConfirmar] = useState(false);
   const ehCliente = tags.includes(ETIQUETA_DE_CLIENTE);
+
+  if (!roleAtLeast(activeOrg?.role, "manager")) return null;
+  // A aba Clientes é da agência (`converzon_agencia`); no consultório o botão
+  // levaria para uma aba que não aparece.
+  if (!activeOrg?.capacidades_ligadas?.includes("converzon_agencia")) return null;
+
+  return (
+    <>
+      <Button
+        size="sm"
+        variant={ehCliente ? "ghost" : "outline"}
+        className="h-7 px-2 text-xs"
+        disabled={disabled}
+        onClick={() => setConfirmar(true)}
+      >
+        <CheckCircle size={12} className="mr-1" weight="regular" aria-hidden />
+        {ehCliente ? t("Desmarcar cliente") : t("Marcar como cliente")}
+      </Button>
+      <MarcarComoClienteDialog
+        contactId={contactId}
+        ehCliente={ehCliente}
+        open={confirmar}
+        onOpenChange={setConfirmar}
+      />
+    </>
+  );
+}
+
+export function MarcarComoClienteDialog({
+  contactId,
+  ehCliente,
+  open,
+  onOpenChange,
+  origemFunil = false,
+}: {
+  contactId: string;
+  ehCliente: boolean;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  origemFunil?: boolean;
+}) {
+  const t = useT();
+  const qc = useQueryClient();
 
   const trocar = useMutation({
     mutationFn: async (marcar: boolean) =>
@@ -59,51 +101,39 @@ export function MarcarComoCliente({
       qc.invalidateQueries({ queryKey: ["conversation-counts"] });
       qc.invalidateQueries({ queryKey: ["contact", contactId] });
       qc.invalidateQueries({ queryKey: ["contacts"] });
+      qc.invalidateQueries({ queryKey: ["board"] });
+      onOpenChange(false);
       toast.success(marcar ? t("Contato marcado como cliente.") : t("Contato desmarcado como cliente."));
     },
   });
 
-  if (!roleAtLeast(activeOrg?.role, "manager")) return null;
-  // A aba Clientes é da agência (`converzon_agencia`); no consultório o botão
-  // levaria para uma aba que não aparece.
-  if (!activeOrg?.capacidades_ligadas?.includes("converzon_agencia")) return null;
-
   return (
-    <>
-      <Button
-        size="sm"
-        variant={ehCliente ? "ghost" : "outline"}
-        className="h-7 px-2 text-xs"
-        disabled={disabled || trocar.isPending}
-        onClick={() => setConfirmar(true)}
-      >
-        <CheckCircle size={12} className="mr-1" weight="regular" aria-hidden />
-        {ehCliente ? t("Desmarcar cliente") : t("Marcar como cliente")}
-      </Button>
-      <AlertDialog open={confirmar} onOpenChange={setConfirmar}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {ehCliente ? t("Desmarcar este cliente?") : t("Marcar este contato como cliente?")}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {ehCliente
-                ? t(
-                    "As conversas dele saem da aba Clientes. A IA continua fora das conversas que já estão com a equipe: para ela voltar a responder, use Devolver ao automático na conversa.",
-                  )
-                : t(
-                    "As conversas dele vão para a aba Clientes e ficam lá, mesmo depois de fechadas. A IA para de responder este contato: daqui em diante, só a equipe atende.",
-                  )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t("Cancelar")}</AlertDialogCancel>
-            <AlertDialogAction onClick={() => trocar.mutate(!ehCliente)}>
-              {ehCliente ? t("Desmarcar") : t("Marcar como cliente")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            {ehCliente ? t("Desmarcar este cliente?") : t("Marcar este contato como cliente?")}
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            {ehCliente
+              ? t(
+                  "As conversas dele saem da aba Clientes. A IA continua fora das conversas que já estão com a equipe: para ela voltar a responder, use Devolver ao automático na conversa.",
+                )
+              : origemFunil
+                ? t("As conversas dele vão para Clientes, os cards saem do quadro comercial e o atendimento pelo WhatsApp passa a ser da equipe.")
+                : t("As conversas dele vão para a aba Clientes e ficam lá, mesmo depois de fechadas. A IA para de responder este contato: daqui em diante, só a equipe atende.")}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={trocar.isPending}>{t("Cancelar")}</AlertDialogCancel>
+          <AlertDialogAction disabled={trocar.isPending} onClick={(event) => {
+            event.preventDefault();
+            trocar.mutate(!ehCliente);
+          }}>
+            {ehCliente ? t("Desmarcar") : t("Marcar como cliente")}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

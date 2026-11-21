@@ -28,7 +28,10 @@ import { useBulkAction } from "@/hooks/kanban/useBulkAction";
 import { usePropostaEnviadaDoLead } from "@/hooks/kanban/usePropostaEnviadaDoLead";
 import { useAssignableMembers } from "@/hooks/inbox/useAssignableMembers";
 import { useAssignableAgents } from "@/hooks/kanban/useAssignableAgents";
-import { usePermission } from "@/hooks/auth/AuthProvider";
+import { useActiveOrg, usePermission } from "@/hooks/auth/AuthProvider";
+import { roleAtLeast } from "@/lib/auth/types";
+import { ETIQUETA_DE_CLIENTE } from "@/lib/inbox/abas-converzon";
+import { MarcarComoClienteDialog } from "@/components/inbox/MarcarComoCliente";
 import { LoseLeadDialog } from "./LoseLeadDialog";
 import { MoveToOtherPipelineDialog } from "./MoveToOtherPipelineDialog";
 import { EditLeadDialog } from "./EditLeadDialog";
@@ -45,6 +48,10 @@ export function KanbanCardActions({ lead, pipelineId }: KanbanCardActionsProps) 
   const [moveOpen, setMoveOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [clienteOpen, setClienteOpen] = useState(false);
+  const org = useActiveOrg();
+  const podeMarcarCliente = org?.capacidades_ligadas?.includes("converzon_agencia") &&
+    roleAtLeast(org.role, "manager") && !lead.contact_tags?.includes(ETIQUETA_DE_CLIENTE);
   const winMutation = useWinLead(pipelineId);
   const editMutation = useEditLead(pipelineId);
   // Excluir um card é a mesma ação da barra de seleção, com um id só: mesma
@@ -195,6 +202,11 @@ export function KanbanCardActions({ lead, pipelineId }: KanbanCardActionsProps) 
               {t("Levar para outro funil")}
             </DropdownMenuItem>
           )}
+          {podeMarcarCliente && lead.contact_id && (
+            <DropdownMenuItem onSelect={() => setClienteOpen(true)}>
+              {t("Marcar como cliente")}
+            </DropdownMenuItem>
+          )}
           {canAssign && (
             <>
               <DropdownMenuSeparator />
@@ -262,6 +274,16 @@ export function KanbanCardActions({ lead, pipelineId }: KanbanCardActionsProps) 
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {podeMarcarCliente && lead.contact_id && clienteOpen && (
+        <MarcarComoClienteDialog
+          contactId={lead.contact_id}
+          ehCliente={false}
+          open={clienteOpen}
+          onOpenChange={setClienteOpen}
+          origemFunil
+        />
+      )}
 
       <LoseLeadDialog
         open={loseOpen}
