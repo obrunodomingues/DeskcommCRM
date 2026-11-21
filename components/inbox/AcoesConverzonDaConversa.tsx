@@ -72,7 +72,7 @@ export function AcoesConverzonDaConversa({
   };
 
   const enviarPrimeiroAtendimento = useMutation({
-    mutationFn: () => apiClient.post(primeiroAtendimentoUrl, {}),
+    mutationFn: () => apiClient.post(primeiroAtendimentoUrl, {}, { timeoutMs: 60_000 }),
     onError: showApiError,
     onSuccess: () => toast.success(t("Primeiro atendimento enviado.")),
     onSettled: () => {

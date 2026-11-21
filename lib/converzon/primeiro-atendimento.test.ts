@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { linksDoPortfolio, montarPrimeiroAtendimento, respostasDeclaradas } from "./primeiro-atendimento";
+import { montarPrimeiroAtendimento, respostasDeclaradas } from "./primeiro-atendimento";
 
 describe("primeiro atendimento da Converzon", () => {
   it("usa o horário de Brasília e as seis respostas do cadastro, inclusive no formato antigo", () => {
@@ -14,12 +14,21 @@ describe("primeiro atendimento da Converzon", () => {
     };
     expect(respostasDeclaradas(antigos)).toHaveLength(6);
     const [abertura, prova, convite] = montarPrimeiroAtendimento("Joana Exemplo", antigos, new Date("2026-11-21T11:00:00Z"));
-    expect(abertura).toBe("Bom dia, Joana! Aqui é o Bruno da Converzon, prazer!\nRecebi seu cadastro: trabalha com imóveis, não tem site e tem como foco vender de forma online.");
-    expect(prova).toContain("https://ronaldocarvalhocorretordeimoveis.com/");
-    expect(prova.match(/https:\/\//g)).toHaveLength(3);
+    expect(abertura).toBe("Bom dia, Joana! Aqui é o Bruno da Converzon, prazer!\nRecebi seu cadastro: trabalha com imóveis, não tem site e busca vender de forma online.");
+    expect(prova.split("\n").slice(2)).toEqual([
+      "https://drleonardogomes.com/",
+      "https://ht-arquitetura.com/",
+      "https://www.sosentregasrapidas.com.br/",
+      "https://marquesadvocacia.adv.br/",
+      "https://agapeservicos.com.br/",
+      "https://arenanit360.site/",
+      "https://solartp.com.br",
+    ]);
+    const [, provaSemSegmento] = montarPrimeiroAtendimento(null, null, new Date("2026-11-21T11:00:00Z"));
+    expect(provaSemSegmento).toBe(prova);
     expect(convite).toContain("site, CRM e agente de IA");
     expect(convite).toContain("tráfego pago e da criação de conteúdo");
-    expect(convite.split("\n")).toHaveLength(2);
+    expect(convite.split("\n")[1]).toBe("Gostaria que eu te mandasse um orçamento para instalar a máquina de vendas ou apenas desenvolver um site?");
   });
 
   it("diz Boa tarde e Boa noite nos limites do relógio de Brasília", () => {
@@ -34,7 +43,6 @@ describe("primeiro atendimento da Converzon", () => {
     }, new Date("2026-11-21T11:00:00Z"));
     expect(abertura).toContain("é arquiteta e já tem site");
     expect(abertura).not.toContain("Advocacia");
-    expect(linksDoPortfolio("arquiteta")[0]).toBe("https://ht-arquitetura.com/");
   });
 
   it("usa uma abertura de WhatsApp quando não há formulário nem nome confiável", () => {

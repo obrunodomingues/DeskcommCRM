@@ -32,24 +32,15 @@ function encaixar(valor: string): string {
     : comLimite;
 }
 
-const EXEMPLOS = [
-  { nicho: /imove|corret|imobili/, link: "https://ronaldocarvalhocorretordeimoveis.com/" },
-  { nicho: /arquitet|interior/, link: "https://ht-arquitetura.com/" },
-  { nicho: /advog|advoc|jurid/, link: "https://marquesadvocacia.adv.br/" },
-  { nicho: /saude|clinic|medic|estetic/, link: "https://drleonardogomes.com/" },
-  { nicho: /educa|curso|escola/, link: "https://educsaudelumen.com.br/" },
-  { nicho: /solar|energia/, link: "https://solartp.com.br/" },
-  { nicho: /entrega|frete|logistic/, link: "https://www.sosentregasrapidas.com.br/" },
-  { nicho: /tecnolog|software|informatica/, link: "https://nextcoreti.com.br/" },
-  { nicho: /turism|pousad|hotel/, link: "https://trindade.pousadafilhosdaterra.com.br/" },
+const PORTFOLIO = [
+  "https://drleonardogomes.com/",
+  "https://ht-arquitetura.com/",
+  "https://www.sosentregasrapidas.com.br/",
+  "https://marquesadvocacia.adv.br/",
+  "https://agapeservicos.com.br/",
+  "https://arenanit360.site/",
+  "https://solartp.com.br",
 ] as const;
-
-export function linksDoPortfolio(segmento: string): string[] {
-  const buscavel = paraBusca(segmento);
-  const afins = EXEMPLOS.filter(({ nicho }) => nicho.test(buscavel)).map(({ link }) => link);
-  const variados = [EXEMPLOS[1].link, EXEMPLOS[5].link, EXEMPLOS[2].link, EXEMPLOS[3].link];
-  return [...new Set([...afins, ...variados])].slice(0, 3);
-}
 
 function parteDoSite(valor: string): string {
   const resposta = paraBusca(valor);
@@ -93,7 +84,7 @@ export function montarPrimeiroAtendimento(
         ? "é " + segmento
         : "trabalha com " + segmento),
     possuiSite,
-    objetivo && "tem como foco " + objetivo,
+    objetivo && "busca " + objetivo,
   ].filter(Boolean);
   const resumo = new Intl.ListFormat("pt-BR", { type: "conjunction" }).format(partes);
   const cadastro = resumo
@@ -105,7 +96,7 @@ export function montarPrimeiroAtendimento(
   return [
     abertura + " Aqui é o Bruno da Converzon, prazer!\n" + cadastro,
     "Aqui fazemos sites 100% personalizados desde 2021, em código próprio, sem templates ou plugins. Carregam em segundos! E site rápido converte mais e agrada o Google.\nDá uma olhada nesses:\n" +
-      linksDoPortfolio(segmento).join("\n"),
-    "Posso te ajudar com a Máquina de Vendas (site, CRM e agente de IA), desenvolver só o site ou cuidar do tráfego pago e da criação de conteúdo.\nPelo que você me contou, a Máquina de Vendas pode fazer sentido. Posso te apresentar e mostrar o CRM por dentro?",
+      PORTFOLIO.join("\n"),
+    "Posso te ajudar com a Máquina de Vendas (site, CRM e agente de IA), desenvolver só o site ou cuidar do tráfego pago e da criação de conteúdo.\nGostaria que eu te mandasse um orçamento para instalar a máquina de vendas ou apenas desenvolver um site?",
   ];
 }

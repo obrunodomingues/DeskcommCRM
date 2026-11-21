@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mock = vi.hoisted(() => ({
   send: vi.fn(),
+  wait: vi.fn<(ms: number) => Promise<void>>(),
   authorize: vi.fn(),
   statuses: new Map<string, string>(),
   active: false,
@@ -11,6 +12,10 @@ const mock = vi.hoisted(() => ({
   alreadyAnswered: false,
 }));
 
+vi.mock("node:timers/promises", () => ({
+  default: { setTimeout: mock.wait },
+  setTimeout: mock.wait,
+}));
 vi.mock("@/lib/converzon/perfil-servidor", () => ({ instalacaoDeAgencia: () => true }));
 vi.mock("@/lib/auth/require-role", () => ({
   requireRole: async () => ({ ok: true, user: { id: "operador" }, org: { orgId: "org", role: "manager" } }),
@@ -44,7 +49,11 @@ vi.mock("@/lib/supabase/server", () => ({
             : table === "contacts"
             ? { name: "Lead Exemplo", is_personal: mock.personal }
             : table === "crm_leads"
-              ? { custom_fields: { segmento: "imóveis" } }
+              ? [
+                  { custom_fields: {}, source_metadata: {} },
+                  { custom_fields: { segmento: "imóveis", ja_possui_site: "Não tenho", objetivo_principal: "Gerar mais leads" },
+                    source_metadata: { nome_declarado: "Maria Exemplo" } },
+                ]
               : outbound
                 ? mock.alreadyAnswered ? [{ id: "other" }] : []
                 : [...mock.statuses].map(([id, status]) => ({ id, status })),
@@ -81,6 +90,7 @@ beforeEach(() => {
   mock.active = false;
   mock.personal = false;
   mock.alreadyAnswered = false;
+  mock.wait.mockReset().mockResolvedValue(undefined);
   mock.send.mockImplementation(async (_db, options: { internalMessageId: string }) => {
     mock.statuses.set(options.internalMessageId, "sent");
     return { status: "sent" };
@@ -92,6 +102,12 @@ describe("botão Enviar 1º atendimento", () => {
     expect((await POST(req, ctx)).status).toBe(200);
     expect((await POST(req, ctx)).status).toBe(200);
     expect(mock.send.mock.calls.map((call) => call[2].metadata.converzon_primeiro_atendimento)).toEqual([1, 2, 3]);
+    expect(mock.wait.mock.calls).toEqual([[6_000], [9_000]]);
+    expect(mock.wait.mock.invocationCallOrder[0]).toBeGreaterThan(mock.send.mock.invocationCallOrder[0]!);
+    expect(mock.wait.mock.invocationCallOrder[0]).toBeLessThan(mock.send.mock.invocationCallOrder[1]!);
+    expect(mock.wait.mock.invocationCallOrder[1]).toBeGreaterThan(mock.send.mock.invocationCallOrder[1]!);
+    expect(mock.wait.mock.invocationCallOrder[1]).toBeLessThan(mock.send.mock.invocationCallOrder[2]!);
+    expect(mock.send.mock.calls[0]?.[2]?.body).toContain("Maria! Aqui é o Bruno da Converzon, prazer!\nRecebi seu cadastro: trabalha com imóveis, não tem site e busca gerar mais leads.");
     expect(mock.authorize).toHaveBeenCalledTimes(1);
     expect(mock.send.mock.calls[0]?.[1]?.actor.type).toBe("user");
   });
@@ -105,6 +121,13 @@ describe("botão Enviar 1º atendimento", () => {
     expect(mock.authorize).not.toHaveBeenCalled();
     expect((await POST(req, ctx)).status).toBe(200);
     expect(mock.send.mock.calls.map((call) => call[2].metadata.converzon_primeiro_atendimento)).toEqual([1, 2, 2, 3]);
+  });
+
+  it("confere se houve outro atendimento durante a pausa antes de enviar o próximo bloco", async () => {
+    mock.wait.mockImplementationOnce(async () => { mock.alreadyAnswered = true; });
+    expect((await POST(req, ctx)).status).toBe(409);
+    expect(mock.send).toHaveBeenCalledTimes(1);
+    expect(mock.authorize).not.toHaveBeenCalled();
   });
 
   it("evita uma segunda abordagem quando houve outra resposta ou a conversa é pessoal", async () => {

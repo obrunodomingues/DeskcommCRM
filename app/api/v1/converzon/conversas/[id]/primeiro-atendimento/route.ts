@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
+import { setTimeout as aguardar } from "node:timers/promises";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 
@@ -10,7 +11,7 @@ import { autorizarContatoParaIA } from "@/lib/ai/elegibilidade/autorizacao";
 import { requireRole } from "@/lib/auth/require-role";
 import { estadoDaJanela } from "@/lib/channels/janela";
 import { instalacaoDeAgencia } from "@/lib/converzon/perfil-servidor";
-import { montarPrimeiroAtendimento } from "@/lib/converzon/primeiro-atendimento";
+import { montarPrimeiroAtendimento, respostasDeclaradas } from "@/lib/converzon/primeiro-atendimento";
 import { requireSupportWrite } from "@/lib/impersonate/support";
 import { createClient } from "@/lib/supabase/server";
 
@@ -20,6 +21,7 @@ type Context = { params: Promise<{ id: string }> };
 const ENDPOINT = "converzon.primeiro_atendimento";
 const ENVIADOS = ["sent", "delivered", "read"];
 const EM_CURSO = ["queued", "sending"];
+const PAUSAS_ENTRE_BLOCOS_MS = [0, 6_000, 9_000] as const;
 
 function idDaMensagem(conversa: string, posicao: number): string {
   const s = createHash("sha256").update([ENDPOINT, conversa, String(posicao)].join(":")).digest("hex");
@@ -50,10 +52,10 @@ async function lerSituacao(db: Awaited<ReturnType<typeof createClient>>, orgId: 
   const [contato, lead, mensagens, outraMensagem, canal] = await Promise.all([
     db.from("contacts").select("name, display_name, is_personal, is_blocked, is_anonymized, force_human, ai_opt_out, tags")
       .eq("organization_id", orgId).eq("id", contactId).maybeSingle(),
-    db.from("crm_leads").select("custom_fields, crm_pipelines!inner(name)")
+    db.from("crm_leads").select("custom_fields, source_metadata, crm_pipelines!inner(name)")
       .eq("organization_id", orgId).eq("crm_pipelines.organization_id", orgId)
       .eq("contact_id", contactId).eq("status", "open").eq("crm_pipelines.name", "Comercial")
-      .order("created_at", { ascending: false }).limit(1).maybeSingle(),
+      .order("created_at", { ascending: false }),
     db.from("messages").select("id, status")
       .eq("organization_id", orgId).eq("conversation_id", id).in("id", ids),
     db.from("messages").select("id")
@@ -69,14 +71,18 @@ async function lerSituacao(db: Awaited<ReturnType<typeof createClient>>, orgId: 
   }
   if (!canal.data || estadoDaJanela(canal.data.provider, conversa.last_inbound_at, new Date()).tipo === "fechada") return null;
   const c = contato.data;
-  if (!c || !lead.data || c.is_personal || c.is_blocked || c.is_anonymized || c.force_human ||
+  if (!c || lead.data.length === 0 || c.is_personal || c.is_blocked || c.is_anonymized || c.force_human ||
       c.ai_opt_out || c.tags?.includes("cliente") || outraMensagem.data.length > 0) return null;
+  const cadastro = lead.data.find(({ custom_fields }) => respostasDeclaradas(custom_fields as Record<string, unknown> | null).length > 0);
+  const campos = cadastro?.custom_fields as Record<string, unknown> | undefined;
+  const origem = cadastro?.source_metadata as Record<string, unknown> | undefined;
+  const nomeDeclarado = typeof origem?.nome_declarado === "string" ? origem.nome_declarado : "";
   return {
     ids,
     contactId,
     assignedTo: conversa.assigned_to_user_id,
-    nome: c.name || c.display_name,
-    campos: lead.data.custom_fields as Record<string, unknown> | null,
+    nome: nomeDeclarado || c.name || c.display_name,
+    campos,
     status: new Map(mensagens.data.map((m) => [m.id, m.status])),
   };
 }
@@ -124,6 +130,8 @@ export async function POST(_req: NextRequest, ctx: Context): Promise<Response> {
           if (status && EM_CURSO.includes(status)) {
             throw new ApiError(409, "idempotency_in_progress", undefined, requestId, "Aguarde a confirmação da mensagem antes de continuar.");
           }
+          const pausa = PAUSAS_ENTRE_BLOCOS_MS[i];
+          if (pausa) await aguardar(pausa);
           const atual = await lerSituacao(c.db, c.orgId, c.id, requestId);
           if (!atual || (atual.assignedTo && atual.assignedTo !== c.auth.user.id)) {
             throw new ApiError(409, "conflict", undefined, requestId, "A conversa mudou durante o primeiro atendimento. Confira as mensagens.");
